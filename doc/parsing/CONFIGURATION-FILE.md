@@ -45,11 +45,6 @@ The configuration file must be in YAML.
     <td>map&#60;string, string&#62;</td>
     <td>map of all routes replace/path</td>
   </tr>
-  <tr>
-    <td>index</td>
-    <td>string</td>
-    <td>names of the index file</td>
-  </tr>
 </tbody>
 <thead>
   <tr>
@@ -61,6 +56,11 @@ The configuration file must be in YAML.
     <td>root</td>
     <td>string</td>
     <td>Root path of the server</td>
+  </tr>
+  <tr>
+    <td>index</td>
+    <td>string</td>
+    <td>Names of the index file for all routes</td>
   </tr>
   <tr>
     <td>max_body_size</td>
@@ -118,6 +118,11 @@ The configuration file must be in YAML.
     <td>max_body_size</td>
     <td>int</td>
     <td>Redefine max length for client body size for this route</td>
+  </tr>
+  <tr>
+    <td>index</td>
+    <td>string</td>
+    <td>names of the index file for this routes</td>
   </tr>
   <tr>
     <td>allowed_methods</td>
