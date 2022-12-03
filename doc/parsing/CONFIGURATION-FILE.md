@@ -150,6 +150,6 @@ The configuration file must be in YAML.
 
 
 *Here's some docs for YAML*
->https://learn.getgrav.org/16/advanced/yaml&emsp;&emsp;Basic YAML syntax introduction
+>https://learn.getgrav.org/16/advanced/yaml &emsp;&emsp;Basic YAML syntax introduction
 
 [Back to summary](../SUMMARY.md)
