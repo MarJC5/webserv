@@ -3,4 +3,7 @@
 
 #include <iostream>
 
+#include "HttpException.hpp"
+#include "HttpParser.hpp"
+
 #endif

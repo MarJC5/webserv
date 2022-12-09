@@ -13,7 +13,7 @@ NAME		= webserv
 # FOLDERS & FILES
 SRCS_DIR	= ./src/
 SRCS_FILES	= main.cpp
-SRCS_FILES	+=
+SRCS_FILES	+= HttpException.cpp
 SRCS		:= ${patsubst %, ${SRCS_DIR}%, ${SRCS_FILES}}
 
 O_DIR		= ./objs/
@@ -28,12 +28,12 @@ DEBUGS		:= ${patsubst %, ${D_DIR}%, ${OBJS_FILES}}
 CC			= g++
 CFLAGS		= -Wall -Wextra -Werror
 # Add this for debug
-CFLAGS		+= -g3
+#CFLAGS		+= -g3
 
-CPP_FLAGS 	= -std=c++98
+CPP_FLAGS 	= -std=c++98 -pedantic
 
 # COMMANDS
-MKDIR		= mkdir
+MKDIR		= mkdir -p
 RM			= rm -f
 
 all: ${NAME}
