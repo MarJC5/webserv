@@ -4,6 +4,8 @@ The configuration file is a simple text file that contains the configuration of 
 
 ## Directives
 
+![config](../img/config.JPG)
+
 The configuration file must be in YAML.
 
 <table>
