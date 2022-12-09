@@ -14,7 +14,18 @@ HttpException::HttpException(void) {
 HttpException::HttpException(std::string statusMessage, int statusCode) {
 	_initDefault();
 	if (!statusMessage.empty() && statusCode >= 0)
-		_init(statusCode, statusMessage);
+	{
+		manageStatusMessage(statusMessage, statusCode);
+		_statusCode = statusCode;
+	}
+}
+
+HttpException::HttpException(int statusCode) {
+	_initDefault();
+	if (statusCode >= 0)
+	{
+		_statusCode = statusCode;
+	}
 }
 
 /**
@@ -162,7 +173,7 @@ void HttpException::_initDefault(void) {
 }
 
 /*
- * Method: HttpException::_init
+ * Init default values
  * @param code HTTP status code
  * @param message HTTP status message
  */
@@ -179,6 +190,9 @@ void HttpException::_init(int code, std::string message)
  * Description: Add a new error message.
  * Parameters: std::string errMessage, int errCode
  * Returns: void
+ * @param code HTTP status code
+ * @param message HTTP status message
+ * @return void
  */
 
 void HttpException::manageStatusMessage(std::string statusMessage, int statusCode) {

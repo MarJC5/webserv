@@ -26,6 +26,7 @@ class HttpException : public std::exception
 	public:
 		// Constructor
 		HttpException(void);
+		HttpException(int statusCode);
 		HttpException(std::string statusMessage, int statusCode);
 		~HttpException(void) throw();
 		HttpException(HttpException const &src);
@@ -52,8 +53,8 @@ class HttpException : public std::exception
 		std::vector<std::string> _statusMessages;
 		std::vector<int>         _statusCodes;
 
-		void                     _init(int code, std::string message);
-		void                     _initDefault(void);
+		void    _init(int code, std::string message);
+		void    _initDefault(void);
 };
 
 std::ostream &operator<<(std::ostream &o, HttpException const &rhs);
