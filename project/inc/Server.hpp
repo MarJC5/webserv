@@ -11,13 +11,14 @@ class Server:    public Properties
 {
     public:
         Server(void);
+        Server(const Server &copy);
         virtual ~Server(void);
 
         Server &operator=(Server const &right);
 
         //get
         std::string const &getName(void) const;
-        std::string const &ip(void) const;
+        std::string const &getIp(void) const;
         int const &getPort(void) const;
 
     private:

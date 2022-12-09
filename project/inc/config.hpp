@@ -17,7 +17,7 @@ public:
 
 
 private:
-    std::vector<Server> _Server;
+    std::vector<Server> _server;
 
 };
 
