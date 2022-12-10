@@ -28,7 +28,7 @@ class HttpException : public std::exception
 		HttpException(void);
 		HttpException(int statusCode);
 		HttpException(std::string statusMessage, int statusCode);
-		~HttpException(void) throw();
+		virtual ~HttpException(void) throw();
 		HttpException(HttpException const &src);
 
 		HttpException &operator=(HttpException const &rhs); // Assignment operator

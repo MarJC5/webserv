@@ -85,7 +85,10 @@ HttpException &HttpException::operator<<(int statusCode) {
 */
 
 const char *HttpException::what() const throw() {
-	std::cout << *this;
+	if (_statusCode >= 0 && _statusCode >= 100 && _statusCode < 300)
+		std::cout << *this;
+	else
+		std::cerr << *this;
 	return "";
 }
 
@@ -190,9 +193,6 @@ void HttpException::_init(int code, std::string message)
  * Description: Add a new error message.
  * Parameters: std::string errMessage, int errCode
  * Returns: void
- * @param code HTTP status code
- * @param message HTTP status message
- * @return void
  */
 
 void HttpException::manageStatusMessage(std::string statusMessage, int statusCode) {
@@ -204,8 +204,7 @@ void HttpException::manageStatusMessage(std::string statusMessage, int statusCod
 				return ;
 			}
 		}
-		_statusMessages.push_back(statusMessage);
-		_statusCodes.push_back(statusCode);
+		_init(statusCode, statusMessage);
 	}
 }
 
@@ -237,6 +236,6 @@ std::ostream &operator<<(std::ostream &o, HttpException const &rhs) {
 		<< statusCode
 		<< " "
 		<< "\033[0m"
-		<< rhs.getStatusMessage(statusCode) << std::endl;
+		<< rhs.getStatusMessage(statusCode);
 	return o;
 }
