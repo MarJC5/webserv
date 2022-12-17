@@ -49,6 +49,10 @@ class HttpParser
 		std::string     getStatusMessage(void) const;
 		HttpException   getStatus(void) const;
 
+		// URL encoding and decoding
+		static std::string urlEncode(std::string const &str);
+		static std::string urlDecode(std::string const &str);
+
 		// Response
 		void setStatus(std::string statusCode, std::string statusMessage);
 		void setStatusMessage(std::string statusMessage);
@@ -62,7 +66,6 @@ class HttpParser
 
 		// Methods
 		void showHeaders(void) const;
-		// split a string into a vector of strings
 		std::vector<std::string> split(std::string str, std::string delimiter);
 
 	protected:
@@ -75,7 +78,7 @@ class HttpParser
 		std::string   _statusCode;
 		std::string   _statusMessage;
 		bool		  _isRequest;
-		std::map<std::string, std::string> _headers; // key: header name, value: header value
+		std::map<std::string, std::string> _headers;
 };
 
 std::ostream &operator<<(std::ostream &o, HttpParser const &rhs);

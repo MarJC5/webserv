@@ -202,6 +202,66 @@ void HttpParser::parse(char *buffer) {
 }
 
 /**
+ * Method: HttpParser::urlEncode
+ * Description: Encode a string to be used in an URL.
+ * @param str: The string to encode.
+ * @return: The encoded string.
+ */
+
+std::string HttpParser::urlEncode(std::string const &str) {
+	std::string encoded = "";
+	char c;
+	int ic;
+	std::string::const_iterator i = str.begin();
+	std::string::const_iterator end = str.end();
+	while (i != end) {
+		c = (*i);
+		ic = c;
+		// Keep alphanumeric and other accepted characters intact
+		if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+			encoded += c;
+		} else {
+			// Any other characters are percent-encoded
+			encoded += '%';
+			encoded += std::string("0123456789ABCDEF")[(ic >> 4) & 0xF];
+			encoded += std::string("0123456789ABCDEF")[ic & 0xF];
+		}
+		++i;
+	}
+	return encoded;
+}
+
+/**
+ * Method: HttpParser::urlDecode
+ * Description: Decode a string from an URL.
+ * @param str: The string to decode.
+ * @return: The decoded string.
+ */
+
+std::string HttpParser::urlDecode(std::string const &str) {
+	std::string decoded = "";
+	char c;
+	int ic;
+	std::string::const_iterator i = str.begin();
+	std::string::const_iterator end = str.end();
+	while (i != end) {
+		c = (*i);
+		if (c == '+') {
+			decoded += ' ';
+		} else if (c == '%') {
+			std::istringstream iss(str.substr(i - str.begin() + 1, 2));
+			iss >> std::hex >> ic;
+			decoded += static_cast<char>(ic);
+			i += 2;
+		} else {
+			decoded += c;
+		}
+		++i;
+	}
+	return decoded;
+}
+
+/**
  * Method: HttpParser::showHeaders
  * Description: Show the headers of the HTTP message.
  */
