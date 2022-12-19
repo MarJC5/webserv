@@ -45,15 +45,9 @@ Loop &Loop::operator=( Loop const & rhs )
 
 void Loop::createsocket(void)
 {
-	this->fd_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->fd_socket == -1)
-		std::cout << "Error: creation socket" << std::endl; // temporaire
-	
-	/*
-	int len = sizeof(this->sockaddr);
-	if (accept(this->fd_socket, (struct sockaddr*)&this->sockaddr, (socklen_t)&len) == -1)
-		std::cout << "Error: creation socket" << std::endl; // temporaire
-	*/
+	this->_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (this->_socket == -1)
+		std::cout << "Error: creation _socket" << std::endl; // temporaire
 }
 
 void Loop::setstruct(void)
@@ -66,14 +60,42 @@ void Loop::setstruct(void)
 
 void Loop::socketbind(void)
 {
-	if (bind(this->fd_socket, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
-		std::cout << "Error: creation socket" << std::endl; // temporaire
+	if (bind(this->_socket, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
+		std::cout << "Error: bind" << std::endl; // temporaire
 }
 
 void Loop::socketlisten(void)
 {
-	if (listen(this->fd_socket, 5) == -1)
-		std::cout << "Error: creation socket" << std::endl; // temporaire
+	if (listen(this->_socket, 5) == -1)
+		std::cout << "Error: listen" << std::endl; // temporaire
+}
+
+void Loop::socketaccept(void)
+{
+	socklen_t len = sizeof(this->sockaddr);
+	this->fd_socket = accept(this->_socket, (struct sockaddr*)&this->sockaddr, &len);
+	if (this->fd_socket == -1)
+		std::cout << "Error: accept" << std::endl; // temporaire
+}
+
+void Loop::readrequete(void)
+{
+	this->r_octet = recv(this->fd_socket, this->r_buffer, sizeof(this->r_buffer), 0);
+	if (this->r_octet == -1)
+		std::cout << "Error: recv" << std::endl; // temporaire
+}
+
+void Loop::sendrequete(void)
+{
+	this->w_octet = send(this->fd_socket, this->w_buffer, sizeof(this->w_buffer), 0);
+	if (this->w_octet == -1)
+		std::cout << "Error: send" << std::endl; // temporaire
+}
+
+void Loop::closesocket(void)
+{
+	close(this->fd_socket);
+	close(this->_socket);
 }
 
 /*
