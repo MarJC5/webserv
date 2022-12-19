@@ -4,14 +4,20 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
+Loop::Loop()
+{
+	return ;
+}
+
 Loop::Loop(Server &tmp)
 {
 	this->serv = tmp;
 	return ;
 }
 
-Loop::Loop( const Loop & src )
+Loop::Loop(const Loop & src)
 {
+	*this = src;
 	return ;
 }
 

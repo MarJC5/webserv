@@ -17,6 +17,7 @@ class Loop
 {
 
 	public:
+		Loop();
 		Loop(Server &tmp);
 		Loop( Loop const & src );
 		~Loop();
