@@ -21,7 +21,7 @@ class Loop
 		Loop(Server &tmp);
 		Loop( Loop const & src );
 		~Loop();
-		Loop &operator=(Loop const & rhs);
+		Loop &operator=(Loop &rhs);
 
 		//Construit mes sockets avec les info de la class server
 		void createsocket(void); // crée un socket

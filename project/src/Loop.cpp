@@ -21,27 +21,33 @@ Loop::Loop(const Loop & src)
 	return ;
 }
 
-
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
 Loop::~Loop()
 {
+	this->closesocket();
 	return ;
 }
-
 
 /*
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-Loop &Loop::operator=( Loop const & rhs )
+Loop &Loop::operator=(Loop &rhs)
 {
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
+	if ( this != &rhs )
+	{
+		this->_socket = rhs.get_socket();
+		this->sockaddr = rhs.get_sockaddr();
+		this->fd_socket = rhs.get_fd_socket();
+		this->r_octet = rhs.get_read_octet();
+		this->r_buffer = rhs.get_read_buffer();
+		this->w_octet = rhs.get_write_octet();
+		this->w_buffer = rhs.get_write_buffer();
+		this->serv = rhs.get_ref_server();
+	}
 	return *this;
 }
 
