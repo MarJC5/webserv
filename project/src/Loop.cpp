@@ -108,5 +108,46 @@ void Loop::closesocket(void)
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
+int Loop::get_socket(void)
+{
+	return (this->_socket);
+}
 
-/* ************************************************************************** */
+struct sockaddr_in Loop::get_sockaddr(void)
+{
+	return (this->sockaddr);
+}
+
+int Loop::get_fd_socket(void)
+{
+	return (this->fd_socket);
+}
+
+int Loop::get_read_octet(void)
+{
+	return (this->r_octet);
+
+}
+
+char *Loop::get_read_buffer(void)
+{
+	return (this->r_buffer);
+}
+
+int Loop::get_write_octet(void)
+{
+	return (this->w_octet);
+}
+
+char *Loop::get_write_buffer(void)
+{
+	return (this->w_buffer);
+}
+
+Server &Loop::get_ref_server(void)
+{
+	return (this->serv);
+}
+
+/* *
+************************************************************************* */

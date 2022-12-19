@@ -38,6 +38,14 @@ class Loop
 		void closesocket(void); // close le socket et sont fd
 
 		// tous mes accesseurs
+		int get_socket(void);
+		struct sockaddr_in get_sockaddr(void);
+		int get_fd_socket(void);
+		int get_read_octet(void);
+		char *get_read_buffer(void);
+		int get_write_octet(void);
+		char *get_write_buffer(void);
+		Server &get_ref_server(void);
 
 	private:
 		int _socket; // le socket crée par socket
