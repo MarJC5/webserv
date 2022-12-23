@@ -59,7 +59,7 @@ void Loop::createsocket(void)
 {
 	this->_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_socket == -1)
-		std::cout << "Error: creation _socket" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::setstruct(void)
@@ -73,13 +73,13 @@ void Loop::setstruct(void)
 void Loop::socketbind(void)
 {
 	if (bind(this->_socket, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
-		std::cout << "Error: bind" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::socketlisten(void)
 {
 	if (listen(this->_socket, 5) == -1)
-		std::cout << "Error: listen" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::socketaccept(void)
@@ -87,27 +87,48 @@ void Loop::socketaccept(void)
 	socklen_t len = sizeof(this->sockaddr);
 	this->fd_socket = accept(this->_socket, (struct sockaddr*)&this->sockaddr, &len);
 	if (this->fd_socket == -1)
-		std::cout << "Error: accept" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::readrequete(void)
 {
 	this->r_octet = recv(this->fd_socket, this->r_buffer, sizeof(this->r_buffer), 0);
 	if (this->r_octet == -1)
-		std::cout << "Error: recv" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::sendrequete(void)
 {
 	this->w_octet = send(this->fd_socket, this->w_buffer, sizeof(this->w_buffer), 0);
 	if (this->w_octet == -1)
-		std::cout << "Error: send" << std::endl; // temporaire
+		throw std::exception(); // temporaire
 }
 
 void Loop::closesocket(void)
 {
 	close(this->fd_socket);
 	close(this->_socket);
+}
+
+void	Loop::loop(void)
+{
+	int ret = 0;
+	// ici crée mon socket + setup()
+	while (ret == 0)
+	{
+		try
+		{
+			// crée le socket etc... (ou avant d'appeller loop  ou avant la loop)
+			// en attente de recevoir un msg
+			// traite ce msg et commence a communiquer, si autre socket(connexion) stock dans tab_socket et fork() et lance this->loop pour l'enfant qui est modifier pour l'enfant = exit(0)
+		}
+		catch (std::exception &tmp)
+		{
+			std::cout << "erreur : loop\n";
+			ret = 1;
+		}
+	}
+	this->loop(); // autres socket
 }
 
 /*

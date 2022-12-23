@@ -12,6 +12,7 @@
 #include "sys/socket.h"
 #include <netinet/in.h>
 #include "sys/types.h"
+#include <vector>
 
 class Loop
 {
@@ -47,7 +48,11 @@ class Loop
 		char *get_write_buffer(void);
 		Server &get_ref_server(void);
 
+		// loop
+		void	loop(void);
+
 	private:
+		std::vector<Loop> tab_socket; // pour stocker les multiples sockets
 		int _socket; // le socket crée par socket
 		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
 		int fd_socket; // le fd de mon socket
