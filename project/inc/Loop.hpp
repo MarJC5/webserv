@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include "sys/types.h"
 #include <vector>
+#include <netinet/in.h>
 
 class Loop
 {
@@ -52,14 +53,15 @@ class Loop
 		void	loop(void);
 
 	private:
-		std::vector<Loop> tab_socket; // pour stocker les multiples sockets
+		std::vector<int> tab_socket; // pour stocker les multiples sockets
+		std::vector<int>::iterator it;
 		int _socket; // le socket crée par socket
 		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
 		int fd_socket; // le fd de mon socket
 		int r_octet; // le nombre d'octet read
-		char *r_buffer; // le buffer pour le recv (read)
+		char r_buffer[256]; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
-		char *w_buffer; // le buffer pour send
+		char w_buffer[256]; // le buffer pour send
 		Server &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
 

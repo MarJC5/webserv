@@ -84,22 +84,23 @@ void Loop::socketlisten(void)
 
 void Loop::socketaccept(void)
 {
+	this->it = this->tab_socket.end();
 	socklen_t len = sizeof(this->sockaddr);
-	this->fd_socket = accept(this->_socket, (struct sockaddr*)&this->sockaddr, &len);
-	if (this->fd_socket == -1)
+	*this->it = accept(this->_socket, (struct sockaddr*)&this->sockaddr, &len);
+	if (*this->it == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::readrequete(void)
 {
-	this->r_octet = recv(this->fd_socket, this->r_buffer, sizeof(this->r_buffer), 0);
+	this->r_octet = recv(*this->it, this->r_buffer, sizeof(this->r_buffer), 255);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::sendrequete(void)
 {
-	this->w_octet = send(this->fd_socket, this->w_buffer, sizeof(this->w_buffer), 0);
+	this->w_octet = send(*this->it, this->w_buffer, sizeof(this->w_buffer), 255);
 	if (this->w_octet == -1)
 		throw std::exception(); // temporaire
 }
@@ -113,14 +114,33 @@ void Loop::closesocket(void)
 void	Loop::loop(void)
 {
 	int ret = 0;
-	// ici crée mon socket + setup()
-	while (ret == 0)
+	try
+	{
+		this->createsocket();
+		this->setstruct();
+		this->socketbind();
+		this->socketlisten();
+		this->socketaccept();
+		std::cout << "le serveur : a une connection de " << inet_ntoa(this->sockaddr.sin_addr) << " pour le port " << ntohs(this->sockaddr.sin_port) << std::endl;
+	}
+	catch (std::exception &tmp)
+	{
+		std::cout << "erreur : loop initialisation\n";
+		ret = 1;
+	}
+	while (ret != 1)
 	{
 		try
 		{
+			this->sendrequete();
+			this->readrequete();
+			std::cout << this->r_buffer << std::endl;
+
+			/*/ ---- \\ 
 			// crée le socket etc... (ou avant d'appeller loop  ou avant la loop)
 			// en attente de recevoir un msg
 			// traite ce msg et commence a communiquer, si autre socket(connexion) stock dans tab_socket et fork() et lance this->loop pour l'enfant qui est modifier pour l'enfant = exit(0)
+			\\ ---- /*/
 		}
 		catch (std::exception &tmp)
 		{
@@ -128,7 +148,7 @@ void	Loop::loop(void)
 			ret = 1;
 		}
 	}
-	this->loop(); // autres socket
+	this->closesocket();
 }
 
 /*
