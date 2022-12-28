@@ -6,7 +6,7 @@
 #define WEBSERV_ROUTE_HPP
 
 
-class Route:    public Properties
+class Location:    public Properties
 {
     public:
 

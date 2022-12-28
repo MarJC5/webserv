@@ -5,7 +5,7 @@
 #ifndef WEBSERV_SERVER_HPP
 # define WEBSERV_SERVER_HPP
 
-#include "Route.hpp"
+#include "Location.hpp"
 
 class Server:    public Properties
 {
@@ -25,7 +25,7 @@ class Server:    public Properties
         std::string _name;
         std::string _ip;
         int         _port;
-        std::map<std::string, Route> _routes;
+        std::map<std::string, Location> _locations;
 };
 
 #endif //WEBSERV_SERVER_HPP
