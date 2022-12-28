@@ -70,6 +70,13 @@ void Loop::setstruct(void)
 	this->sockaddr.sin_addr.s_addr = htonl(temp);
 }
 
+void Loop::socksetopt(void)
+{
+	int temp = 1;
+	if (setsockopt(this->_socket, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp) == -1))
+		throw std::exception(); // temporaire
+}
+
 void Loop::socketbind(void)
 {
 	if (bind(this->_socket, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
@@ -114,38 +121,38 @@ void Loop::closesocket(void)
 void	Loop::loop(void)
 {
 	int ret = 0;
+	int temp = 0;
 	try
 	{
 		this->createsocket();
 		this->setstruct();
+		this->socksetopt();
 		this->socketbind();
 		this->socketlisten();
-		this->socketaccept();
-		std::cout << "le serveur : a une connection de " << inet_ntoa(this->sockaddr.sin_addr) << " pour le port " << ntohs(this->sockaddr.sin_port) << std::endl;
 	}
 	catch (std::exception &tmp)
 	{
 		std::cout << "erreur : loop initialisation\n";
 		ret = 1;
 	}
+	int readsock = socket(AF_INET, SOCK_DGRAM, 0);
+	bind(readsock, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr));
 	while (ret != 1)
 	{
-		try
-		{
-			this->sendrequete();
-			this->readrequete();
-			std::cout << this->r_buffer << std::endl;
+		FD_SET(this->_socket, &this->fd_set);
+		FD_SET(readsock, &this->fd_set);
+		temp = select(this->_socket, &this->fd_set, NULL, NULL, NULL);
 
-			/*/ ---- \\ 
-			// crée le socket etc... (ou avant d'appeller loop  ou avant la loop)
-			// en attente de recevoir un msg
-			// traite ce msg et commence a communiquer, si autre socket(connexion) stock dans tab_socket et fork() et lance this->loop pour l'enfant qui est modifier pour l'enfant = exit(0)
-			\\ ---- /*/
-		}
-		catch (std::exception &tmp)
+		// lis message (requete)
+		if (FD_ISSET(readsock, &this->fd_set))
 		{
-			std::cout << "erreur : loop\n";
-			ret = 1;
+
+		}
+
+		// envoie message (reponse)
+		if (FD_ISSET(this->_socket, &this->fd_set))
+		{
+
 		}
 	}
 	this->closesocket();

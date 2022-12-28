@@ -12,6 +12,7 @@
 #include "sys/socket.h"
 #include <netinet/in.h>
 #include "sys/types.h"
+#include "signal.h"
 #include <vector>
 #include <netinet/in.h>
 
@@ -28,6 +29,7 @@ class Loop
 		//Construit mes sockets avec les info de la class server
 		void createsocket(void); // crée un socket
 		void setstruct(void); // remplis ma struct avec les infos de la class Server via la reference de server dans cette class
+		void socksetopt(void);
 		void socketbind(void); // bind() mon socket nouvellement crée
 		void socketlisten(void); // listen() mon socket nouvellement crée
 		void socketaccept(void); // attend un appel du socket client
@@ -58,6 +60,8 @@ class Loop
 		int _socket; // le socket crée par socket
 		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
 		int fd_socket; // le fd de mon socket
+		int max_fd = 1024;
+		fd_set fd_set;
 		int r_octet; // le nombre d'octet read
 		char r_buffer[256]; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
