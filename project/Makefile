@@ -13,7 +13,7 @@ NAME		= webserv
 # FOLDERS & FILES
 SRCS_DIR	= ./src/
 SRCS_FILES	= main.cpp
-SRCS_FILES	+=
+SRCS_FILES	+= confFile.cpp
 SRCS		:= ${patsubst %, ${SRCS_DIR}%, ${SRCS_FILES}}
 
 O_DIR		= ./objs/
