@@ -124,8 +124,8 @@ void	Loop::loop(void)
 	int temp = 0;
 	try
 	{
-		this->createsocket();
-		this->setstruct();
+		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
+ 		this->setstruct();
 		this->socksetopt();
 		this->socketbind();
 		this->socketlisten();
@@ -139,18 +139,18 @@ void	Loop::loop(void)
 	bind(readsock, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr));
 	while (ret != 1)
 	{
-		FD_SET(this->_socket, &this->fd_set);
-		FD_SET(readsock, &this->fd_set);
-		temp = select(this->_socket, &this->fd_set, NULL, NULL, NULL);
+		FD_SET(this->_socket, &this->setfd);
+		FD_SET(readsock, &this->setfd);
+		temp = select(this->_socket, &this->setfd, NULL, NULL, NULL);
 
 		// lis message (requete)
-		if (FD_ISSET(readsock, &this->fd_set))
+		if (FD_ISSET(readsock, &this->setfd))
 		{
 
 		}
 
 		// envoie message (reponse)
-		if (FD_ISSET(this->_socket, &this->fd_set))
+		if (FD_ISSET(this->_socket, &this->setfd))
 		{
 
 		}

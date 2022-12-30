@@ -61,7 +61,7 @@ class Loop
 		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
 		int fd_socket; // le fd de mon socket
 		int max_fd = 1024;
-		fd_set fd_set;
+		fd_set setfd;
 		int r_octet; // le nombre d'octet read
 		char r_buffer[256]; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
