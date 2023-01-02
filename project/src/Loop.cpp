@@ -39,9 +39,9 @@ Loop &Loop::operator=(Loop &rhs)
 {
 	if ( this != &rhs )
 	{
-		this->_socket = rhs.get_socket();
+		this->tab_socket = rhs.get_socket();
 		this->sockaddr = rhs.get_sockaddr();
-		this->fd_socket = rhs.get_fd_socket();
+		this->tab_fd = rhs.get_fd_socket();
 		this->r_octet = rhs.get_read_octet();
 		this->r_buffer = rhs.get_read_buffer();
 		this->w_octet = rhs.get_write_octet();
@@ -57,8 +57,8 @@ Loop &Loop::operator=(Loop &rhs)
 
 void Loop::createsocket(void)
 {
-	this->_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->_socket == -1)
+	this->tab_socket.push_back(socket(AF_INET, SOCK_STREAM, 0));
+	if (this->tab_socket.back() == -1)
 		throw std::exception(); // temporaire
 }
 
@@ -73,29 +73,29 @@ void Loop::setstruct(void)
 void Loop::socksetopt(void)
 {
 	int temp = 1;
-	if (setsockopt(this->_socket, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp) == -1))
+	if (setsockopt(this->tab_socket.back(), SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp) == -1))
 		throw std::exception(); // temporaire
 }
 
 void Loop::socketbind(void)
 {
-	if (bind(this->_socket, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
+	if (bind(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::socketlisten(void)
 {
-	if (listen(this->_socket, 5) == -1)
+	if (listen(this->tab_socket.back(), 5) == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::socketaccept(void)
 {
-	this->it = this->tab_socket.end();
 	socklen_t len = sizeof(this->sockaddr);
-	*this->it = accept(this->_socket, (struct sockaddr*)&this->sockaddr, &len);
-	if (*this->it == -1)
+	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, &len));
+	if (this->tab_fd.back() == -1)
 		throw std::exception(); // temporaire
+	this->it = this->tab_fd.end();
 }
 
 void Loop::readrequete(void)
@@ -114,8 +114,13 @@ void Loop::sendrequete(void)
 
 void Loop::closesocket(void)
 {
-	close(this->fd_socket);
-	close(this->_socket);
+	int i = 0;
+	while (i < this->tab_socket.size())
+	{
+		close(this->tab_socket);
+		close(this->tab_fd);
+		i++;
+	}
 }
 
 void	Loop::loop(void)
@@ -139,9 +144,9 @@ void	Loop::loop(void)
 	bind(readsock, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr));
 	while (ret != 1)
 	{
-		FD_SET(this->_socket, &this->setfd);
+		FD_SET(this->*it, &this->setfd);
 		FD_SET(readsock, &this->setfd);
-		temp = select(this->_socket, &this->setfd, NULL, NULL, NULL);
+		temp = select(*this->it, &this->setfd, NULL, NULL, NULL);
 
 		// lis message (requete)
 		if (FD_ISSET(readsock, &this->setfd))
@@ -150,7 +155,7 @@ void	Loop::loop(void)
 		}
 
 		// envoie message (reponse)
-		if (FD_ISSET(this->_socket, &this->setfd))
+		if (FD_ISSET(*this->it, &this->setfd))
 		{
 
 		}
@@ -162,9 +167,9 @@ void	Loop::loop(void)
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-int Loop::get_socket(void)
+std::list<int> Loop::get_socket(void)
 {
-	return (this->_socket);
+	return (this->tab_socket);
 }
 
 struct sockaddr_in Loop::get_sockaddr(void)
@@ -172,9 +177,9 @@ struct sockaddr_in Loop::get_sockaddr(void)
 	return (this->sockaddr);
 }
 
-int Loop::get_fd_socket(void)
+std::list<int> Loop::get_fd_socket(void)
 {
-	return (this->fd_socket);
+	return (this->tab_fd);
 }
 
 int Loop::get_read_octet(void)

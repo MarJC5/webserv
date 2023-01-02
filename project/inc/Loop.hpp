@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include "sys/types.h"
 #include "signal.h"
-#include <vector>
+#include <list>
 #include <netinet/in.h>
 
 class Loop
@@ -29,7 +29,7 @@ class Loop
 		//Construit mes sockets avec les info de la class server
 		void createsocket(void); // crée un socket
 		void setstruct(void); // remplis ma struct avec les infos de la class Server via la reference de server dans cette class
-		void socksetopt(void);
+		void socksetopt(void); // socksetopt mon socket
 		void socketbind(void); // bind() mon socket nouvellement crée
 		void socketlisten(void); // listen() mon socket nouvellement crée
 		void socketaccept(void); // attend un appel du socket client
@@ -42,9 +42,9 @@ class Loop
 		void closesocket(void); // close le socket et sont fd
 
 		// tous mes accesseurs
-		int get_socket(void);
+		std::list<int> get_socket(void);
 		struct sockaddr_in get_sockaddr(void);
-		int get_fd_socket(void);
+		std::list<int> get_fd_socket(void);
 		int get_read_octet(void);
 		char *get_read_buffer(void);
 		int get_write_octet(void);
@@ -55,11 +55,10 @@ class Loop
 		void	loop(void);
 
 	private:
-		std::vector<int> tab_socket; // pour stocker les multiples sockets
-		std::vector<int>::iterator it;
-		int _socket; // le socket crée par socket
+		std::list<int> tab_socket; // pour stocker les multiples sockets
+		std::list<int> tab_fd;	  // tab de fd de mes sockets, même indice
+		std::list<int>::iterator it;
 		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
-		int fd_socket; // le fd de mon socket
 		int max_fd = 1024;
 		fd_set setfd;
 		int r_octet; // le nombre d'octet read
