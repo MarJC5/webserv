@@ -5,16 +5,21 @@
 #ifndef WEBSERV_CONFIG_HPP
 #define WEBSERV_CONFIG_HPP
 
+#include "ConfFile.hpp"
+#include "Server.hpp"
+
 # define BUFFER_SIZE 1024
 
 class Config
 {
 public:
-    config(void);
-    config(const Config &copy);
+    Config(void);
+    Config(const Config &copy);
     virtual ~Config(void);
 
-    void parseConf(stdd::string fileName);
+    Config &operator=(const Config &right);
+
+    void parseConf(std::string fileName);
 
     //get
     const std::vector<Server> getServer() const;
@@ -22,7 +27,7 @@ public:
 
 private:
     std::vector<Server> _server;
-
+    ConfFile _file;
 };
 
 std::string readFile(std::string fileName);

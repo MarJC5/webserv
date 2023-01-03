@@ -1,9 +1,9 @@
 //
 // Created by tywael on 12/9/22.
 //
-#include "Properties.hpp"
+#include "../inc/Properties.hpp"
 
-Properties::Properties(void): _Root(), _Index(), _cgi_bin(), _max_body_size(), _allowed_method(), _directory_listing(), _cgi_extensions, _upload_dir() {}
+Properties::Properties(void): _root(""), _index(""), _max_body_size(1048576), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
 
 Properties::Properties(const Properties &copy)
 {
@@ -28,42 +28,42 @@ Properties &Properties::operator=(Properties const &right)
     return (*this);
 }
 
-std::string const &getRoot(void) const
+std::string const &Properties::getRoot(void) const
 {
     return (_root);
 }
 
-std::string const &getIndex(void) const
+std::string const &Properties::getIndex(void) const
 {
     return (_index);
 }
 
-std::string const &getCgiBin(void) const
+std::string const &Properties::getCgiBin(void) const
 {
     return (_cgi_bin);
 }
 
-std::string const &getUploadDir(void) const
+std::string const &Properties::getUploadDir(void) const
 {
     return (_upload_dir);
 }
 
-int const &getMaxBody(void) const
+int const &Properties::getMaxBody(void) const
 {
     return (_max_body_size);
 }
 
-bool const &getDirListing(void) const
+bool const &Properties::getDirListing(void) const
 {
     return (_directory_listing);
 }
 
-std::Array<std::string> const &getCgiExtensions(void) const
+std::vector<std::string> const &Properties::getCgiExtensions(void) const
 {
     return (_cgi_extensions);
 }
 
-std::Array<std::string> const &getAllowedMet(void) const
+std::vector<std::string> const &Properties::getAllowedMet(void) const
 {
     return (_allowed_method);
 }

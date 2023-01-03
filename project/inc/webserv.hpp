@@ -2,6 +2,7 @@
 #define WEBSERV_HPP
 
 #include <iostream>
-#include "confFile.hpp"
+#include "ConfFile.hpp"
+#include "Config.hpp"
 
 #endif

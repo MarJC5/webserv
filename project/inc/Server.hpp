@@ -6,6 +6,8 @@
 # define WEBSERV_SERVER_HPP
 
 #include "Location.hpp"
+#include "Properties.hpp"
+#include <map>
 
 class Server:    public Properties
 {
@@ -20,6 +22,7 @@ class Server:    public Properties
         std::string const &getName(void) const;
         std::string const &getIp(void) const;
         int const &getPort(void) const;
+        std::map<std::string, Location> const &getLocations() const;
 
     private:
         std::string _name;

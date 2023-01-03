@@ -5,13 +5,13 @@
 #ifndef WEBSERV_ROUTE_HPP
 #define WEBSERV_ROUTE_HPP
 
+#include "Properties.hpp"
 
 class Location:    public Properties
 {
-    public:
-
-    private:
-
+public:
+    Location();
+    ~Location();
 };
 
 

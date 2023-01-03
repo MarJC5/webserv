@@ -3,7 +3,7 @@
 //
 
 
-#include "../inc/confFile.hpp"
+#include "../inc/ConfFile.hpp"
 
 ConfFile::ConfFile() {}
 
