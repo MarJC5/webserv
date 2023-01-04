@@ -4,6 +4,7 @@ int main(int argc, char **argv, char **envp)
 {
 
     Config config;
+    std::map<std::string, Location*> locations;
 
 	(void)envp;
 	if (argc > 1)
@@ -13,6 +14,8 @@ int main(int argc, char **argv, char **envp)
         std::cout << (*it)->getName() << std::endl;
         std::cout << (*it)->getIp() << std::endl;
         std::cout << (*it)->getPort() << std::endl;
+        locations = (*it)->getLocations();
+        std::cout << locations["/"]->getIndex() << std::endl;
     }
 	return (0);
 }

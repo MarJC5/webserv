@@ -13,16 +13,6 @@ size_t nspace(std::string str) {
     return (ret);
 }
 
-std::string getVal(std::string line, std::string attrib, size_t pos) {
-    size_t lenWord;
-    std::string temp;
-
-    pos += std::string(attrib).size();
-    pos = line.find_first_not_of(" ", pos);
-    lenWord = line.find(" ", pos) - (pos);
-    return (line.substr(pos, lenWord));
-}
-
 Server::Server(void): Properties(), _name("localhost"), _ip("127.0.0.1"), _port(80), _locations() {}
 
 Server::Server(const Server &copy): Properties(copy)

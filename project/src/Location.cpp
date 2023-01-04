@@ -11,6 +11,8 @@ Location::~Location() {}
 
 void Location::parseLocation(std::vector<std::string>::const_iterator &it,
                              std::vector<std::string>::const_iterator end) {
-    (void)end;
-    std::cout << *it << std::endl;
+    for (; it != end; it++) {
+        if (this->parseProper(*it))
+            continue;
+    }
 }
