@@ -22,12 +22,14 @@ public:
     void parseConf(std::string fileName);
 
     //get
-    const std::vector<Server> getServer() const;
+    const std::vector<Server*> &getServer() const;
 
 
 private:
-    std::vector<Server> _server;
+    std::vector<Server*> _server;
     ConfFile _file;
+
+    Server &init_serv();
 };
 
 std::string readFile(std::string fileName);

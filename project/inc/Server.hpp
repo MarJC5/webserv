@@ -9,6 +9,8 @@
 #include "Properties.hpp"
 #include <map>
 
+std::vector<std::string>::const_iterator getClosingBracket(std::vector<std::string>::const_iterator begin, std::vector<std::string>::const_iterator end);
+
 class Server:    public Properties
 {
     public:
@@ -22,13 +24,20 @@ class Server:    public Properties
         std::string const &getName(void) const;
         std::string const &getIp(void) const;
         int const &getPort(void) const;
-        std::map<std::string, Location> const &getLocations() const;
+        std::map<std::string, Location*> const &getLocations() const;
 
-    private:
+        void parseServer(std::vector<std::string>::const_iterator &it, std::vector<std::string>::const_iterator end);
+        bool parseName(std::string line);
+        bool parseIp(std::string line);
+        bool parsePort(std::string line);
+        bool parseLocations(std::vector<std::string>::const_iterator &it, std::vector<std::string>::const_iterator end);
+
+        private:
         std::string _name;
         std::string _ip;
         int         _port;
-        std::map<std::string, Location> _locations;
+        std::map<std::string, Location*> _locations;
+
 };
 
 #endif //WEBSERV_SERVER_HPP
