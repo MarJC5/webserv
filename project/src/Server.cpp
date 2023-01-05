@@ -87,7 +87,7 @@ bool Server::parseLocations(std::vector<std::string>::const_iterator &it, std::v
     int numLoc = -1;
     std::string key;
 
-    if ((pos = it->find("location")) != std::string::npos) {
+    if ((pos = findKey(*it, "location")) != std::string::npos) {
         for (; it != end; it++) {
             numLoc++;
             _locations[key = getVal(*it, "location", pos)] = new Location();
