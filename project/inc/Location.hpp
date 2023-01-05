@@ -13,7 +13,7 @@ public:
     Location();
     ~Location();
 
-    void parseLocation(std::vector<std::string>::const_iterator &it, std::vector<std::string>::const_iterator end);
+    void parseLocation(std::vector<std::string>::const_iterator it, std::vector<std::string>::const_iterator end);
 };
 
 

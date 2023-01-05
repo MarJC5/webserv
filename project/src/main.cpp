@@ -15,7 +15,8 @@ int main(int argc, char **argv, char **envp)
         std::cout << (*it)->getIp() << std::endl;
         std::cout << (*it)->getPort() << std::endl;
         locations = (*it)->getLocations();
-        std::cout << locations["/"]->getIndex() << std::endl;
+        std::cout << (locations["/"]->getIndex()) << std::endl;
+        std::cout << (locations["/directory"]->getIndex()) << std::endl;
     }
 	return (0);
 }

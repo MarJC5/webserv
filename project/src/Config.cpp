@@ -49,7 +49,7 @@ void Config::parseConf(std::string fileName)
     int numServ = -1;
 
     _file.readFile(fileName);
-    for (std::vector<std::string>::const_iterator it = _file.getLines().begin(); it != _file.getLines().end(); it++)
+    for (std::vector<std::string>::const_iterator it = _file.getLines().begin(); it < _file.getLines().end(); it++)
     {
         size_t  pos = 0;
         if ((pos = it->find("server")) != std::string::npos)
@@ -62,10 +62,10 @@ void Config::parseConf(std::string fileName)
             }
             else
             {
-                while (it != _file.getLines().end() && it->find("{") == std::string::npos)
+                while (it < _file.getLines().end() && it->find("{") == std::string::npos) {
                     it++;
-                _server[numServ]->parseServer(it, getClosingBracket(it, _file.getLines().end()));
-                it--;
+                }
+                    _server[numServ]->parseServer(it, getClosingBracket(it, _file.getLines().end()));
             }
         }
     }

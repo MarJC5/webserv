@@ -9,9 +9,9 @@ Location::Location(): Properties() {}
 
 Location::~Location() {}
 
-void Location::parseLocation(std::vector<std::string>::const_iterator &it,
+void Location::parseLocation(std::vector<std::string>::const_iterator it,
                              std::vector<std::string>::const_iterator end) {
-    for (; it != end; it++) {
+    for (; it <= end; it++) {
         if (this->parseProper(*it))
             continue;
     }

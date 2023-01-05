@@ -69,6 +69,7 @@ std::map<std::string, Location*> const &Server::getLocations() const
 }
 
 void Server::parseServer(std::vector<std::string>::const_iterator &it, std::vector<std::string>::const_iterator end) {
+
     for (; it < end; ++it) {
         if (parseName(*it))
             continue;
@@ -85,6 +86,7 @@ bool Server::parseLocations(std::vector<std::string>::const_iterator &it, std::v
     size_t pos;
     int numLoc = -1;
     std::string key;
+
     if ((pos = it->find("location")) != std::string::npos) {
         for (; it != end; it++) {
             numLoc++;
@@ -107,7 +109,7 @@ bool Server::parseLocations(std::vector<std::string>::const_iterator &it, std::v
 bool Server::parseName(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("name")) != std::string::npos) {
+    if ((pos = line.find("name ")) != std::string::npos) {
         _name = getVal(line, "name", pos);
         return (true);
     }
@@ -117,7 +119,7 @@ bool Server::parseName(std::string line) {
 bool Server::parseIp(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("ip")) != std::string::npos) {
+    if ((pos = line.find("ip ")) != std::string::npos) {
         _ip = getVal(line, "ip", pos);
         return (true);
     }
@@ -127,7 +129,7 @@ bool Server::parseIp(std::string line) {
 bool Server::parsePort(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("port")) != std::string::npos) {
+    if ((pos = line.find("port ")) != std::string::npos) {
         _port = stoi(getVal(line, "port", pos));
         return (true);
     }

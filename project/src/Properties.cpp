@@ -3,24 +3,45 @@
 //
 #include "../inc/Properties.hpp"
 
+size_t findKey(std::string line, std::string search)
+{
+    size_t ret;
+
+    ret = line.find(search);
+    if (ret == 0 || line[ret - 1] == ' ' || line[ret - 1] == '{' || line[ret - 1] == ';')
+        return (ret);
+    return (std::string::npos);
+}
+
 std::string getVal(std::string line, std::string attrib, size_t pos) {
     size_t lenWord;
+    size_t lenTemp;
     std::string temp;
 
     pos += std::string(attrib).size();
     pos = line.find_first_not_of(" ", pos);
     lenWord = line.find(" ", pos) - (pos);
-    return (line.substr(pos, lenWord));
+    lenTemp = line.find(";", pos) - (pos);
+    if (lenTemp < lenWord)
+        lenWord = lenTemp;
+    temp = line.substr(pos, lenWord);
+    if (temp.back() == ';')
+        temp.erase(temp.back());
+    return (temp);
 }
 
 std::vector<std::string> split(std::string line, std::string sep)
 {
     std::vector<std::string> ret;
+    std::string temp;
     size_t pos = 0;
 
     while ((pos = line.find(sep,pos)) != std::string::npos)
     {
-        ret.push_back(line.substr(0, pos));
+        temp = line.substr(0, pos);
+        if (temp.back() == ';')
+            temp.erase(temp.back());
+        ret.push_back(temp);
         line.erase(0, pos + sep.size());
     }
     ret.erase(ret.begin());
@@ -115,7 +136,7 @@ bool Properties::parseProper(std::string line) {
 bool Properties::parseRoot(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("root")) != std::string::npos) {
+    if ((pos = findKey(line, "root")) != std::string::npos) {
         _root = getVal(line, "root", pos);
         return (true);
     }
@@ -125,7 +146,7 @@ bool Properties::parseRoot(std::string line) {
 bool Properties::parseIndex(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("index")) != std::string::npos) {
+    if ((pos = findKey(line, "index ")) != std::string::npos) {
         _index = getVal(line, "index", pos);
         return (true);
     }
@@ -135,7 +156,7 @@ bool Properties::parseIndex(std::string line) {
 bool Properties::parseMaxBodySize(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("client_max_body_size")) != std::string::npos) {
+    if ((pos = findKey(line, "client_max_body_size ")) != std::string::npos) {
         _max_body_size = stoi(getVal(line, "client_max_body_size", pos));
         return (true);
     }
@@ -145,7 +166,7 @@ bool Properties::parseMaxBodySize(std::string line) {
 bool Properties::parseAllowedMethod(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("index")) != std::string::npos) {
+    if ((pos = findKey(line, "index ")) != std::string::npos) {
         _cgi_extensions = split(line, " ");
         return (true);
     }
@@ -155,7 +176,7 @@ bool Properties::parseAllowedMethod(std::string line) {
 bool Properties::parseCgiBin(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("cgi_path")) != std::string::npos) {
+    if ((pos = findKey(line, "cgi_path ")) != std::string::npos) {
         _cgi_bin = getVal(line, "cgi_path", pos);
         return (true);
     }
@@ -165,8 +186,8 @@ bool Properties::parseCgiBin(std::string line) {
 bool Properties::parseDirList(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("directory_listing")) != std::string::npos) {
-        if (getVal(line, "directory_listing", pos) == "true")
+    if ((pos = findKey(line, "autoindex ")) != std::string::npos) {
+        if (getVal(line, "autoindex", pos) == "true")
             _directory_listing = true;
         else
             _directory_listing = false;
@@ -178,7 +199,7 @@ bool Properties::parseDirList(std::string line) {
 bool Properties::parseCgiExt(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("cgi_extension")) != std::string::npos) {
+    if ((pos = findKey(line, "cgi_extension ")) != std::string::npos) {
         _cgi_extensions = split(line, " ");
         return (true);
     }
@@ -188,7 +209,7 @@ bool Properties::parseCgiExt(std::string line) {
 bool Properties::parseUpDir(std::string line) {
     size_t pos;
 
-    if ((pos = line.find("upload_folder")) != std::string::npos) {
+    if ((pos = findKey(line, "upload_folder ")) != std::string::npos) {
         _upload_dir = getVal(line, "upload_folder", pos);
         return (true);
     }
