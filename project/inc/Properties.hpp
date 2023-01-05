@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include "parse.h"
 
 class Properties
 {
@@ -46,7 +47,6 @@ protected:
         std::vector<std::string> _cgi_extensions;
         std::string             _upload_dir;
 };
-std::string getVal(std::string line, std::string attrib, size_t pos);
 
 
 #endif //WEBSERV_PROPERTIES_HPP

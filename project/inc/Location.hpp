@@ -6,6 +6,7 @@
 #define WEBSERV_ROUTE_HPP
 
 #include "Properties.hpp"
+#include "parse.h"
 
 class Location:    public Properties
 {

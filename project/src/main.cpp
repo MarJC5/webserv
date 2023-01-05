@@ -16,7 +16,12 @@ int main(int argc, char **argv, char **envp)
         std::cout << (*it)->getPort() << std::endl;
         locations = (*it)->getLocations();
         std::cout << (locations["/"]->getIndex()) << std::endl;
-        std::cout << (locations["/directory"]->getIndex()) << std::endl;
+        std::cout << (locations["/"]->getRoot()) << std::endl;
+        std::cout << (locations["/"]->getCgiBin()) << std::endl;
+        std::cout << (locations["/"]->getDirListing()) << std::endl;
+        std::cout << (locations["/"]->getMaxBody()) << std::endl;
+        std::cout << (locations["/"]->getUploadDir()) << std::endl;
+
     }
 	return (0);
 }

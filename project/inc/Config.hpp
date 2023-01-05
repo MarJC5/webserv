@@ -7,6 +7,7 @@
 
 #include "ConfFile.hpp"
 #include "Server.hpp"
+#include "parse.h"
 
 # define BUFFER_SIZE 1024
 
@@ -23,7 +24,6 @@ public:
 
     //get
     const std::vector<Server*> &getServer() const;
-
 
 private:
     std::vector<Server*> _server;

@@ -7,6 +7,7 @@
 
 #include "Location.hpp"
 #include "Properties.hpp"
+#include "parse.h"
 #include <map>
 
 std::vector<std::string>::const_iterator getClosingBracket(std::vector<std::string>::const_iterator begin, std::vector<std::string>::const_iterator end);

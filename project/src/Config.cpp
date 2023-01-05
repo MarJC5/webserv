@@ -52,9 +52,10 @@ void Config::parseConf(std::string fileName)
     for (std::vector<std::string>::const_iterator it = _file.getLines().begin(); it < _file.getLines().end(); it++)
     {
         size_t  pos = 0;
-        if ((pos = it->find("server")) != std::string::npos)
+        if ((pos = findKey(*it, "server")) != std::string::npos)
         {
             numServ++;
+            std::cout << *it << std::endl;
             _server.push_back(new Server());
             if (it->find("{", pos + std::string("server").size()) != std::string::npos)
             {
