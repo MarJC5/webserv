@@ -5,6 +5,7 @@
 #ifndef LOOP_HPP
 # define LOOP_HPP
 
+#include "config.hpp"
 #include "Server.hpp"
 #include <iostream>
 #include <string>
@@ -14,6 +15,7 @@
 #include "sys/types.h"
 #include "signal.h"
 #include <list>
+#include <vector>
 #include <netinet/in.h>
 
 class Loop
@@ -21,7 +23,7 @@ class Loop
 
 	public:
 		Loop();
-		Loop(Server &tmp);
+		Loop(std::vector<Server> &tmp);
 		Loop( Loop const & src );
 		~Loop();
 		Loop &operator=(Loop &rhs);
@@ -58,14 +60,14 @@ class Loop
 		std::list<int> tab_socket; // pour stocker les multiples sockets
 		std::list<int> tab_fd;	  // tab de fd de mes sockets, même indice
 		std::list<int>::iterator it;
-		struct sockaddr_in sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
-		int max_fd = 1024;
+		std::list<struct sockaddr_in> sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
+		int max_fd = 0;
 		fd_set setfd;
 		int r_octet; // le nombre d'octet read
-		char r_buffer[256]; // le buffer pour le recv (read)
+		char *r_buffer; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
-		char w_buffer[256]; // le buffer pour send
-		Server &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
+		char *w_buffer; // le buffer pour send
+		std::vector<Server> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
 
 #endif

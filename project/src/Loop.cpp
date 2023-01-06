@@ -9,7 +9,7 @@ Loop::Loop()
 	return ;
 }
 
-Loop::Loop(Server &tmp)
+Loop::Loop(std::vector<Server> &tmp)
 {
 	this->serv = tmp;
 	return ;
@@ -40,13 +40,11 @@ Loop &Loop::operator=(Loop &rhs)
 	if ( this != &rhs )
 	{
 		this->tab_socket = rhs.get_socket();
-		this->sockaddr = rhs.get_sockaddr();
 		this->tab_fd = rhs.get_fd_socket();
 		this->r_octet = rhs.get_read_octet();
 		this->r_buffer = rhs.get_read_buffer();
 		this->w_octet = rhs.get_write_octet();
 		this->w_buffer = rhs.get_write_buffer();
-		this->serv = rhs.get_ref_server();
 	}
 	return *this;
 }
@@ -64,10 +62,18 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	this->sockaddr.sin_port = htons(this->serv.getPort());
-	this->sockaddr.sin_family = AF_INET;
-	int temp = atoi(this->serv.getIp().c_str());
-	this->sockaddr.sin_addr.s_addr = htonl(temp);
+	std::list<struct sockaddr_in>::iterator it = this->sockaddr.begin();
+	int i = 0;
+
+	while (i < this->sockaddr.size())
+	{
+		*it.sin_port = htons(this->serv.getPort());
+		*it.sin_family = AF_INET;
+		int temp = atoi(this->serv.getIp().c_str());
+		*it.sin_addr.s_addr = htonl(temp);
+		it++;
+		i++;
+	}
 }
 
 void Loop::socksetopt(void)
@@ -115,10 +121,14 @@ void Loop::sendrequete(void)
 void Loop::closesocket(void)
 {
 	int i = 0;
+	std::list<int>::iterator it = this->tab_socket.begin();
+	std::list<int>::iterator itt = this->tab_fd.begin();
 	while (i < this->tab_socket.size())
 	{
-		close(this->tab_socket);
-		close(this->tab_fd);
+		close(*it);
+		close(*itt);
+		it++;
+		itt++;
 		i++;
 	}
 }
@@ -151,13 +161,13 @@ void	Loop::loop(void)
 		// lis message (requete)
 		if (FD_ISSET(readsock, &this->setfd))
 		{
-
+			readrequete();
 		}
 
 		// envoie message (reponse)
 		if (FD_ISSET(*this->it, &this->setfd))
 		{
-
+			sendrequete(); // accept
 		}
 	}
 	this->closesocket();
