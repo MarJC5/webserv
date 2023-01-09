@@ -59,8 +59,12 @@ class Loop
 	private:
 		std::list<int> tab_socket; // pour stocker les multiples sockets
 		std::list<int> tab_fd;	  // tab de fd de mes sockets, même indice
-		std::list<int>::iterator it;
-		std::list<struct sockaddr_in> sockaddr; // struct pour le socket qui contient plusieur info (ip, port, ...)
+		std::list<int>::iterator it_fd;
+
+		std::list<sockaddr_in> sockaddr_vect; // struct pour le socket qui contient plusieur info (ip, port, ...) à supprimer si pas utilisé à la fin
+		struct sockaddr_in sockaddr;
+		int i;
+
 		int max_fd = 0;
 		fd_set setfd;
 		int r_octet; // le nombre d'octet read

@@ -62,17 +62,16 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	std::list<struct sockaddr_in>::iterator it = this->sockaddr.begin();
-	int i = 0;
-
-	while (i < this->sockaddr.size())
+	std::list<sockaddr_in>::iterator it = this->sockaddr_vect.begin();
+	this->i = 0;
+	if (this->i < this->sockaddr_vect.size())
 	{
-		*it.sin_port = htons(this->serv.getPort());
-		*it.sin_family = AF_INET;
-		int temp = atoi(this->serv.getIp().c_str());
-		*it.sin_addr.s_addr = htonl(temp);
-		it++;
-		i++;
+		this->sockaddr.sin_port = htons(this->serv[i].getPort());
+		this->sockaddr.sin_family = AF_INET;
+		int temp = atoi(this->serv[i].getIp().c_str());
+		this->sockaddr.sin_addr.s_addr = htonl(temp); // INADDR_ANY pour automatiquement set avec l'ip de l'host
+		this->sockaddr_vect.push_back(this->sockaddr);
+		this->i++;
 	}
 }
 
@@ -101,19 +100,18 @@ void Loop::socketaccept(void)
 	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, &len));
 	if (this->tab_fd.back() == -1)
 		throw std::exception(); // temporaire
-	this->it = this->tab_fd.end();
 }
 
 void Loop::readrequete(void)
 {
-	this->r_octet = recv(*this->it, this->r_buffer, sizeof(this->r_buffer), 255);
+	this->r_octet = recv(*this->it_fd, this->r_buffer, sizeof(this->r_buffer), 255);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::sendrequete(void)
 {
-	this->w_octet = send(*this->it, this->w_buffer, sizeof(this->w_buffer), 255);
+	this->w_octet = send(*this->it_fd, this->w_buffer, sizeof(this->w_buffer), 255);
 	if (this->w_octet == -1)
 		throw std::exception(); // temporaire
 }
@@ -144,6 +142,7 @@ void	Loop::loop(void)
 		this->socksetopt();
 		this->socketbind();
 		this->socketlisten();
+		std::cout << "Une connexion a été établie avec \nPort : " << this->sockaddr.sin_port << "\nIP : " << this->sockaddr.sin_addr.s_addr << std::endl;
 	}
 	catch (std::exception &tmp)
 	{
@@ -152,11 +151,12 @@ void	Loop::loop(void)
 	}
 	int readsock = socket(AF_INET, SOCK_DGRAM, 0);
 	bind(readsock, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr));
+	// plage fd
 	while (ret != 1)
 	{
-		FD_SET(this->*it, &this->setfd);
+		FD_SET(this->*it_fd, &this->setfd);
 		FD_SET(readsock, &this->setfd);
-		temp = select(*this->it, &this->setfd, NULL, NULL, NULL);
+		temp = select(*this->it_fd, &this->setfd, NULL, NULL, NULL);
 
 		// lis message (requete)
 		if (FD_ISSET(readsock, &this->setfd))
@@ -165,7 +165,7 @@ void	Loop::loop(void)
 		}
 
 		// envoie message (reponse)
-		if (FD_ISSET(*this->it, &this->setfd))
+		if (FD_ISSET(*this->it_fd, &this->setfd))
 		{
 			sendrequete(); // accept
 		}
