@@ -12,6 +12,7 @@ Loop::Loop()
 Loop::Loop(std::vector<Server> &tmp)
 {
 	this->serv = tmp;
+	FD_ZERO(&this->setfd);
 	return ;
 }
 
@@ -104,9 +105,11 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
+	bzero(this->r_buffer, sizeof(this->r_buffer));
 	this->r_octet = recv(*this->it_fd, this->r_buffer, sizeof(this->r_buffer), 255);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
+	this->r_buffer[this->r_octet] = '/0';
 }
 
 void Loop::sendrequete(void)
@@ -114,6 +117,7 @@ void Loop::sendrequete(void)
 	this->w_octet = send(*this->it_fd, this->w_buffer, sizeof(this->w_buffer), 255);
 	if (this->w_octet == -1)
 		throw std::exception(); // temporaire
+	bzero(this->w_buffer, sizeof(this->r_buffer));
 }
 
 void Loop::closesocket(void)
@@ -135,6 +139,9 @@ void	Loop::loop(void)
 {
 	int ret = 0;
 	int temp = 0;
+	fd_set r;
+	fd_set w;
+	// fork ici
 	try
 	{
 		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
@@ -149,25 +156,32 @@ void	Loop::loop(void)
 		std::cout << "erreur : loop initialisation\n";
 		ret = 1;
 	}
-	int readsock = socket(AF_INET, SOCK_DGRAM, 0);
-	bind(readsock, (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr));
-	// plage fd
+
 	while (ret != 1)
 	{
-		FD_SET(this->*it_fd, &this->setfd);
-		FD_SET(readsock, &this->setfd);
-		temp = select(*this->it_fd, &this->setfd, NULL, NULL, NULL);
+		if (ret != 2)
+		{
+			FD_SET(this->tab_socket.back(), &this->setfd);
+
+			temp = select(this->tab_socket.back() + 1, &r, &w, NULL, NULL);
+			if (temp == -1)
+				ret = 1;
+		}
 
 		// lis message (requete)
-		if (FD_ISSET(readsock, &this->setfd))
+		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
 		{
-			readrequete();
+			sendrequete();
+			ret = 0;
 		}
 
 		// envoie message (reponse)
-		if (FD_ISSET(*this->it_fd, &this->setfd))
+		if (FD_ISSET(this->tab_socket.back(), &this->setfd))
 		{
-			sendrequete(); // accept
+			socketaccept();
+			readrequete();
+			FD_SET(this->tab_fd.back(), &this->setfd);
+			ret = 2;
 		}
 	}
 	this->closesocket();

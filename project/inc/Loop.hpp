@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include "unistd.h"
+#include "string.h"
 #include "sys/socket.h"
 #include <netinet/in.h>
 #include "sys/types.h"
@@ -67,10 +68,12 @@ class Loop
 
 		int max_fd = 0;
 		fd_set setfd;
+
 		int r_octet; // le nombre d'octet read
-		char *r_buffer; // le buffer pour le recv (read)
+		char r_buffer[1024]; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
-		char *w_buffer; // le buffer pour send
+		char w_buffer[1024]; // le buffer pour send
+
 		std::vector<Server> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
 
