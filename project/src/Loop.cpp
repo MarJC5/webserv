@@ -4,21 +4,15 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Loop::Loop()
+Loop::Loop(std::vector<Server*> &tmp) : serv(tmp)
 {
-	return ;
-}
-
-Loop::Loop(std::vector<Server> &tmp)
-{
-	this->serv = tmp;
 	FD_ZERO(&this->setfd);
 	return ;
 }
 
-Loop::Loop(const Loop & src)
+Loop::Loop(const Loop & src) : serv(src.serv)
 {
-	*this = src;
+	//*this = src;
 	return ;
 }
 
@@ -38,7 +32,8 @@ Loop::~Loop()
 
 Loop &Loop::operator=(Loop &rhs)
 {
-	if ( this != &rhs )
+	(void)rhs;
+	/*if ( this != &rhs )
 	{
 		this->tab_socket = rhs.get_socket();
 		this->tab_fd = rhs.get_fd_socket();
@@ -46,7 +41,7 @@ Loop &Loop::operator=(Loop &rhs)
 		this->r_buffer = rhs.get_read_buffer();
 		this->w_octet = rhs.get_write_octet();
 		this->w_buffer = rhs.get_write_buffer();
-	}
+	}*/
 	return *this;
 }
 
@@ -63,13 +58,12 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	std::list<sockaddr_in>::iterator it = this->sockaddr_vect.begin();
 	this->i = 0;
 	if (this->i < this->sockaddr_vect.size())
 	{
-		this->sockaddr.sin_port = htons(this->serv[i].getPort());
+		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		int temp = atoi(this->serv[i].getIp().c_str());
+		int temp = atoi(this->serv[i]->getIp().c_str());
 		this->sockaddr.sin_addr.s_addr = htonl(temp); // INADDR_ANY pour automatiquement set avec l'ip de l'host
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
@@ -109,7 +103,7 @@ void Loop::readrequete(void)
 	this->r_octet = recv(*this->it_fd, this->r_buffer, sizeof(this->r_buffer), 255);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
-	this->r_buffer[this->r_octet] = '/0';
+	this->r_buffer[this->r_octet] = '\0';
 }
 
 void Loop::sendrequete(void)
@@ -122,7 +116,7 @@ void Loop::sendrequete(void)
 
 void Loop::closesocket(void)
 {
-	int i = 0;
+	size_t i = 0;
 	std::list<int>::iterator it = this->tab_socket.begin();
 	std::list<int>::iterator itt = this->tab_fd.begin();
 	while (i < this->tab_socket.size())
@@ -191,17 +185,17 @@ void	Loop::loop(void)
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-std::list<int> Loop::get_socket(void)
+const std::list<int> Loop::get_socket(void) const
 {
 	return (this->tab_socket);
 }
 
-struct sockaddr_in Loop::get_sockaddr(void)
+const struct sockaddr_in Loop::get_sockaddr(void) const
 {
 	return (this->sockaddr);
 }
 
-std::list<int> Loop::get_fd_socket(void)
+const std::list<int> Loop::get_fd_socket(void) const
 {
 	return (this->tab_fd);
 }
@@ -212,7 +206,7 @@ int Loop::get_read_octet(void)
 
 }
 
-char *Loop::get_read_buffer(void)
+const char *Loop::get_read_buffer(void) const
 {
 	return (this->r_buffer);
 }
@@ -222,12 +216,12 @@ int Loop::get_write_octet(void)
 	return (this->w_octet);
 }
 
-char *Loop::get_write_buffer(void)
+const char *Loop::get_write_buffer(void) const
 {
 	return (this->w_buffer);
 }
 
-Server &Loop::get_ref_server(void)
+const std::vector<Server*> &Loop::get_ref_server(void) const
 {
 	return (this->serv);
 }

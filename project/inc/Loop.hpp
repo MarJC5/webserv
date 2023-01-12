@@ -23,8 +23,7 @@ class Loop
 {
 
 	public:
-		Loop();
-		Loop(std::vector<Server> &tmp);
+		Loop(std::vector<Server*> &tmp);
 		Loop( Loop const & src );
 		~Loop();
 		Loop &operator=(Loop &rhs);
@@ -45,14 +44,14 @@ class Loop
 		void closesocket(void); // close le socket et sont fd
 
 		// tous mes accesseurs
-		std::list<int> get_socket(void);
-		struct sockaddr_in get_sockaddr(void);
-		std::list<int> get_fd_socket(void);
+		const std::list<int> get_socket(void) const;
+		const struct sockaddr_in get_sockaddr(void) const;
+		const std::list<int> get_fd_socket(void) const;
 		int get_read_octet(void);
-		char *get_read_buffer(void);
+		const char *get_read_buffer(void) const;
 		int get_write_octet(void);
-		char *get_write_buffer(void);
-		Server &get_ref_server(void);
+		const char *get_write_buffer(void) const;
+		const std::vector<Server*> &get_ref_server(void) const;
 
 		// loop
 		void	loop(void);
@@ -64,9 +63,8 @@ class Loop
 
 		std::list<sockaddr_in> sockaddr_vect; // struct pour le socket qui contient plusieur info (ip, port, ...) à supprimer si pas utilisé à la fin
 		struct sockaddr_in sockaddr;
-		int i;
+		size_t i;
 
-		int max_fd = 0;
 		fd_set setfd;
 
 		int r_octet; // le nombre d'octet read
@@ -74,7 +72,7 @@ class Loop
 		int w_octet; // le nombre d'octer write
 		char w_buffer[1024]; // le buffer pour send
 
-		std::vector<Server> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
+		std::vector<Server*> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
 
 #endif
