@@ -5,7 +5,7 @@
 #ifndef LOOP_HPP
 # define LOOP_HPP
 
-#include "config.hpp"
+#include "Config.hpp"
 #include "Server.hpp"
 #include <iostream>
 #include <string>
