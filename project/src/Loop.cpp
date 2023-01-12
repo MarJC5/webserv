@@ -1,4 +1,4 @@
-#include "Loop.hpp"
+#include "../inc/Loop.hpp"
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -105,14 +105,15 @@ void Loop::socketbind(void)
 
 void Loop::socketlisten(void)
 {
-	if (listen(this->tab_socket.back(), 5) == -1)
+	if (listen(this->tab_socket.back(), 1024) == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::socketaccept(void)
 {
-	socklen_t len = sizeof(this->sockaddr);
-	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, &len));
+	struct sockaddr_in client;
+	socklen_t temp = sizeof(client);
+	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&client, &temp));
 	if (this->tab_fd.back() == -1)
 		throw std::exception(); // temporaire
 }
@@ -120,7 +121,7 @@ void Loop::socketaccept(void)
 void Loop::readrequete(void)
 {
 	bzero(this->r_buffer, sizeof(this->r_buffer));
-	this->r_octet = recv(*this->it_fd, this->r_buffer, sizeof(this->r_buffer), 255);
+	this->r_octet = recv(this->tab_fd.back(), this->r_buffer, sizeof(this->r_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -128,10 +129,9 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->w_octet = send(*this->it_fd, this->w_buffer, sizeof(this->w_buffer), 255);
-	if (this->w_octet == -1)
+	this->r_octet = send(this->tab_fd.back(), this->r_buffer, sizeof(this->r_buffer), 0);
+	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
-	bzero(this->w_buffer, sizeof(this->r_buffer));
 }
 
 void Loop::closesocket(void)
@@ -151,6 +151,9 @@ void Loop::closesocket(void)
 
 void	Loop::loop(void)
 {
+	HttpParser request;
+	HttpParser response;
+	
 	int ret = 0;
 	int temp = 0;
 	fd_set r;
@@ -162,42 +165,54 @@ void	Loop::loop(void)
 		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
  		std::cout << this->tab_socket.back() << std::endl;
 		this->setstruct();
-		//this->socksetopt();
+		this->socksetopt();
 		this->socketbind();
 		this->socketlisten();
-		std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << this->sockaddr.sin_addr.s_addr << std::endl;
+		std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
 	}
 	catch (std::exception &tmp)
 	{
 		std::cout << "erreur : loop initialisation\n";
 		ret = 1;
 	}
+	FD_ZERO(&this->setfd);
+	FD_SET(this->tab_socket.back(), &this->setfd);
 
 	while (ret != 1)
 	{
-		if (ret != 2)
-		{
-			FD_SET(this->tab_socket.back(), &this->setfd);
+		r = this->setfd;
+		w = this->setfd;
+		temp = select(this->tab_socket.back() + 1, &r, &w, NULL, NULL);
+		if (temp == -1)
+			ret = 1;
 
-			temp = select(this->tab_socket.back() + 1, &r, &w, NULL, NULL);
-			if (temp == -1)
-				ret = 1;
-		}
-
-		// lis message (requete)
-		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
-		{
-			sendrequete();
-			ret = 0;
-		}
-
-		// envoie message (reponse)
+		// envoie message (request)
 		if (FD_ISSET(this->tab_socket.back(), &this->setfd))
 		{
 			socketaccept();
 			readrequete();
+			// print request
+			try {
+				request.parse(r_buffer);
+				std::cout << response << std::endl;
+			} catch (HttpException &e) {
+				std::cout << e.what() << std::endl;
+			}
 			FD_SET(this->tab_fd.back(), &this->setfd);
-			ret = 2;
+		}
+
+		// lis message (reponse)
+		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
+		{
+			// print response
+			char *buffer = strdup("HTTP/1.1 404 OK\r");
+			try {
+				response.parse(buffer);
+				std::cout << request << std::endl;
+			} catch (HttpException &e) {
+				std::cout << e.what() << std::endl;
+			}
+			sendrequete();
 		}
 	}
 	this->closesocket();
