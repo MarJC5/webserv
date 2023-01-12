@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 size_t findKey(std::string line, std::string search)
 {
@@ -38,14 +39,22 @@ std::vector<std::string> split(std::string line, std::string sep)
     std::string temp;
     size_t pos = 0;
 
-    while ((pos = line.find(sep,pos)) != std::string::npos)
+    while ((pos = line.find(sep)) != std::string::npos)
     {
+        if (line[0] == sep[0]) {
+            line.erase(0, sep.size());
+            continue ;
+        }
         temp = line.substr(0, pos);
+        std::cout << line << std::endl;
         if (temp.back() == ';')
             temp.erase(temp.back());
         ret.push_back(temp);
-        line.erase(0, pos + sep.size());
+        line.erase(0, temp.size());
     }
     ret.erase(ret.begin());
+    for (std::vector<std::string>::const_iterator it = ret.begin(); it < ret.end() ; it++) {
+        std::cout << "list - ret: " << *it << std::endl;
+    }
     return (ret);
 }

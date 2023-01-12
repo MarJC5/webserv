@@ -21,7 +21,8 @@ int main(int argc, char **argv, char **envp)
         std::cout << (locations["/"]->getDirListing()) << std::endl;
         std::cout << (locations["/"]->getMaxBody()) << std::endl;
         std::cout << (locations["/"]->getUploadDir()) << std::endl;
-
+        for (std::vector<std::string>::const_iterator lit = locations["/upload"]->getAllowedMet().begin(); lit < locations["/upload"]->getAllowedMet().end(); lit++)
+            std::cout << "Allowed methode---------:" << *lit << std::endl;
     }
 	return (0);
 }

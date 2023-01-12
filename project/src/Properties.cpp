@@ -121,7 +121,7 @@ bool Properties::parseMaxBodySize(std::string line) {
 bool Properties::parseAllowedMethod(std::string line) {
     size_t pos;
 
-    if ((pos = findKey(line, "index ")) != std::string::npos) {
+    if ((pos = findKey(line, "method ")) != std::string::npos) {
         _cgi_extensions = split(line, " ");
         return (true);
     }
