@@ -14,12 +14,12 @@ std::vector<std::string>::const_iterator getClosingBracket(std::vector<std::stri
 
 class Server:    public Properties
 {
-    public:
-        Server(void);
-        Server(const Server &copy);
-        virtual ~Server(void);
+	public:
+		Server(void);
+		Server(const Server &copy);
+		virtual ~Server(void);
 
-        Server &operator=(Server const &right);
+		Server &operator=(Server const &right);
 
         //get
         std::string const &getName(void) const;
