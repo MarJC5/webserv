@@ -5,13 +5,16 @@
 #ifndef WEBSERV_ROUTE_HPP
 #define WEBSERV_ROUTE_HPP
 
+#include "Properties.hpp"
+#include "parse.h"
 
 class Location:    public Properties
 {
-    public:
+public:
+    Location();
+    ~Location();
 
-    private:
-
+    void parseLocation(std::vector<std::string>::const_iterator it, std::vector<std::string>::const_iterator end);
 };
 
 
