@@ -4,7 +4,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Loop::Loop(std::vector<Server*> &tmp) : serv(tmp)
+Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
 	FD_ZERO(&this->setfd);
 	return ;
@@ -59,12 +59,31 @@ void Loop::createsocket(void)
 void Loop::setstruct(void)
 {
 	this->i = 0;
-	if (this->i < this->sockaddr_vect.size())
+	
+	/*
+	struct addrinfo temp;
+	struct addrinfo *rep;
+
+	temp.ai_family = AF_UNSPEC;
+    temp.ai_socktype = SOCK_DGRAM;
+    temp.ai_flags = AI_PASSIVE;
+    temp.ai_protocol = 0;
+    temp.ai_canonname = NULL;
+    temp.ai_addr = NULL;
+    temp.ai_next = NULL;
+
+	int ret = getaddrinfo(NULL, "8080", &temp, &rep);
+	if (ret != 0)
+		std::cout << "Erreur de getaddrinfo" << std::endl;
+	*/
+
+	if (this->i < this->serv.size())
 	{
+		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		int temp = atoi(this->serv[i]->getIp().c_str());
-		this->sockaddr.sin_addr.s_addr = htonl(temp); // INADDR_ANY pour automatiquement set avec l'ip de l'host
+		//int temp = atoi(this->serv[i]->getIp().c_str());
+		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
 	}
@@ -73,12 +92,13 @@ void Loop::setstruct(void)
 void Loop::socksetopt(void)
 {
 	int temp = 1;
-	if (setsockopt(this->tab_socket.back(), SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp) == -1))
+	if (setsockopt(this->tab_socket.back(), SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp)) == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::socketbind(void)
 {
+	
 	if (bind(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
 		throw std::exception(); // temporaire
 }
@@ -135,15 +155,17 @@ void	Loop::loop(void)
 	int temp = 0;
 	fd_set r;
 	fd_set w;
-	// fork ici
 	try
 	{
+		std::cout << "--- loop ---\n";
+		std::cout << this->tab_socket.back() << std::endl;
 		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
- 		this->setstruct();
-		this->socksetopt();
+ 		std::cout << this->tab_socket.back() << std::endl;
+		this->setstruct();
+		//this->socksetopt();
 		this->socketbind();
 		this->socketlisten();
-		std::cout << "Une connexion a été établie avec \nPort : " << this->sockaddr.sin_port << "\nIP : " << this->sockaddr.sin_addr.s_addr << std::endl;
+		std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << this->sockaddr.sin_addr.s_addr << std::endl;
 	}
 	catch (std::exception &tmp)
 	{

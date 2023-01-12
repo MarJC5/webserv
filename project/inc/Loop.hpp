@@ -13,6 +13,10 @@
 #include "string.h"
 #include "sys/socket.h"
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include "stdlib.h"
+#include "stdio.h"
+#include <netdb.h>
 #include "sys/types.h"
 #include "signal.h"
 #include <list>
@@ -23,8 +27,8 @@ class Loop
 {
 
 	public:
-		Loop(std::vector<Server*> &tmp);
-		Loop( Loop const & src );
+		Loop(const std::vector<Server*> &tmp);
+		Loop(Loop const & src );
 		~Loop();
 		Loop &operator=(Loop &rhs);
 
@@ -72,7 +76,7 @@ class Loop
 		int w_octet; // le nombre d'octer write
 		char w_buffer[1024]; // le buffer pour send
 
-		std::vector<Server*> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
+		const std::vector<Server*> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
 
 #endif

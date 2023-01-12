@@ -46,15 +46,11 @@ std::vector<std::string> split(std::string line, std::string sep)
             continue ;
         }
         temp = line.substr(0, pos);
-        std::cout << line << std::endl;
         if (temp.back() == ';')
             temp.erase(temp.back());
         ret.push_back(temp);
         line.erase(0, temp.size());
     }
     ret.erase(ret.begin());
-    for (std::vector<std::string>::const_iterator it = ret.begin(); it < ret.end() ; it++) {
-        std::cout << "list - ret: " << *it << std::endl;
-    }
     return (ret);
 }
