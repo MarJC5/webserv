@@ -7,4 +7,7 @@
 #include "ConfFile.hpp"
 #include "Config.hpp"
 
+#include "HttpException.hpp"
+#include "HttpParser.hpp"
+
 #endif

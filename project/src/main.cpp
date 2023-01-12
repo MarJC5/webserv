@@ -1,5 +1,13 @@
 #include "../inc/webserv.hpp"
 
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+
 int main(int argc, char **argv, char **envp)
 {
 
@@ -7,6 +15,7 @@ int main(int argc, char **argv, char **envp)
     std::map<std::string, Location*> locations;
 
 	(void)envp;
+
 	if (argc > 1)
 		std::cout << argv[1] << std::endl;
 	
