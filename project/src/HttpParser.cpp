@@ -35,6 +35,7 @@ HttpParser &HttpParser::operator=(HttpParser const &rhs) {
 	if (this != &rhs) {
 		_method = rhs._method;
 		_uri = rhs._uri;
+		_file = rhs._file;
 		_httpVersion = rhs._httpVersion;
 		_host = rhs._host;
 		_port = rhs._port;
@@ -182,7 +183,8 @@ void HttpParser::parse(char *buffer) {
 			} else {
 				// Request
 				_method = firstLine[0];
-				_uri = firstLine[1];
+				_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
+				_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
 				_httpVersion = firstLine[2];
 				_isRequest = true;
 			}
@@ -281,13 +283,32 @@ void HttpParser::showHeaders(void) const {
 }
 
 /**
- * Method: HttpParser::buildResponse(HttpParser &request);
+ * Method: HttpParser::buildResponse(const std::vector<Server*> &servers);
  * Description: Build a response from the HTTP message.
  */
 
-void HttpParser::buildResponse(void) {
-	this->setStatusCode("200");
-	this->setStatusMessage("OK");
+
+void HttpParser::buildResponse(const std::vector<Server*> &servers) 
+{
+	/*for (std::vector<Server*>::const_iterator it = servers.begin(); it != servers.end() ; it++) {
+		std::cout << (*it)->getIp() << std::endl;
+	}*/
+	std::map<std::string, Location*> locations;
+	std::vector<std::string> lines;
+	for (std::vector<Server*>::const_iterator it = servers.begin(); it < servers.end() ; ++it) {
+		locations = (*it)->getLocations();
+		std::cout << _uri << std::endl;
+		std::cout << _file << std::endl;
+		std::cout << (locations.find(_uri)->second->getIndex()) << std::endl;
+		std::cout << (locations.find(_uri)->second->getRoot()) << std::endl;
+		lines = readFile(locations.find(_uri)->second->getRoot() + _file);
+		_statusCode = "200";
+		_body.empty();
+		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
+			_body += *it;
+			_body += "\r\n";
+		}
+	}
 	this->_isRequest = false;
 }
 
@@ -299,7 +320,7 @@ void HttpParser::buildResponse(void) {
 std::ostream &operator<<(std::ostream &o, HttpParser const &i) {
 	std::string c = "\033[1;37m";
 	std::string nc = "\033[0m";
-	if (i.parsType() == true) {
+	if (i.parsType()) {
 		o << "Request" << std::endl;
 		o << i.getMethod() << " " << i.getUri() << " " << i.getHttpVersion() << std::endl;
 		o << "----------------" << std::endl;
@@ -321,7 +342,7 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i) {
 	if (!i.getStatusCode().empty())
 		o << c << std::left << std::setw(18) << "Status" << nc << ": " << i.getStatus() << std::endl;
 	i.showHeaders();
-	if (i.getMethod() != "GET" && !i.getBody().empty())
+	if (!i.getBody().empty())
 		o << c << std::left << std::setw(18) << "\nBody" << nc << "\n" << i.getBody() << std::endl;
 	return (o);
 }

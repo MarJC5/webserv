@@ -5,6 +5,19 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
+
+std::vector<std::string> readFile(std::string fileName) {
+	std::string line;
+	std::ifstream file;
+	std::vector<std::string> _lines;
+
+	file.open(fileName.c_str());
+	while (std::getline(file, line))
+		_lines.push_back(line);
+	file.close();
+	return _lines;
+}
 
 size_t findKey(std::string line, std::string search)
 {

@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "parse.h"
 
 class ConfFile {
     public:

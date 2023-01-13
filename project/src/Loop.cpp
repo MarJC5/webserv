@@ -129,7 +129,7 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->r_octet = send(this->tab_fd.back(), this->r_buffer, sizeof(this->r_buffer), 0);
+	this->r_octet = send(this->tab_fd.back(), this->w_buffer, sizeof(this->w_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 }
@@ -207,7 +207,9 @@ void	Loop::loop(void)
 			// print response
 			response = request;
 			try {
-				response.buildResponse();
+				response.buildResponse(serv);
+				std::memset(w_buffer, 0, sizeof(w_buffer));
+				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 				std::cout << response << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;

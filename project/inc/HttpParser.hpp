@@ -21,6 +21,8 @@
 #include <stdlib.h>
 
 #include "HttpException.hpp"
+#include "Server.hpp"
+#include "parse.h"
 
 class HttpParser
 {
@@ -65,7 +67,7 @@ class HttpParser
 		void setBody(std::string body);
 
 		// Build the HTTP response message with HttpParser instance variables.
-		void buildResponse(void);
+		void buildResponse(const std::vector<Server*> &servers);
 
 		// Methods
 		void showHeaders(void) const;
@@ -74,6 +76,7 @@ class HttpParser
 	protected:
 		std::string   _method;
 		std::string   _uri;
+		std::string   _file;
 		std::string   _httpVersion;
 		std::string   _host;
 		std::string   _port;

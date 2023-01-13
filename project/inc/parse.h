@@ -8,5 +8,6 @@
 size_t findKey(std::string line, std::string search);
 std::string getVal(std::string line, std::string attrib, size_t pos);
 std::vector<std::string> split(std::string line, std::string sep);
+std::vector<std::string> readFile(std::string fileName);
 
 #endif //WEBSERV_PARSE_H

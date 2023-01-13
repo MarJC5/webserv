@@ -32,7 +32,6 @@ private:
     Server &init_serv();
 };
 
-std::string readFile(std::string fileName);
 std::string getLine(std::string file, int i);
 
 #endif //WEBSERV_CONFIG_HPP
