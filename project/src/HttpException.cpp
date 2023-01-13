@@ -11,18 +11,18 @@ HttpException::HttpException(void) {
 	_initDefault();
 }
 
-HttpException::HttpException(std::string statusMessage, int statusCode) {
+HttpException::HttpException(std::string statusMessage, std::string statusCode) {
 	_initDefault();
-	if (!statusMessage.empty() && statusCode >= 0)
+	if (!statusMessage.empty() && atoi(statusCode.c_str()) >= 0)
 	{
 		manageStatusMessage(statusMessage, statusCode);
 		_statusCode = statusCode;
 	}
 }
 
-HttpException::HttpException(int statusCode) {
+HttpException::HttpException(std::string statusCode) {
 	_initDefault();
-	if (statusCode >= 0)
+	if (atoi(statusCode.c_str()) >= 0)
 	{
 		_statusCode = statusCode;
 	}
@@ -72,7 +72,7 @@ HttpException &HttpException::operator=(HttpException const &rhs) {
  * Returns: HttpException&
  */
 
-HttpException &HttpException::operator<<(int statusCode) {
+HttpException &HttpException::operator<<(std::string statusCode) {
 	setStatusCode(statusCode);
 	return *this;
 }
@@ -85,7 +85,7 @@ HttpException &HttpException::operator<<(int statusCode) {
 */
 
 const char *HttpException::what() const throw() {
-	if (_statusCode >= 0 && _statusCode >= 100 && _statusCode < 300)
+	if (atoi(_statusCode.c_str()) >= 0 && atoi(_statusCode.c_str()) >= 100 && atoi(_statusCode.c_str()) < 300)
 		std::cout << *this;
 	else
 		std::cerr << *this;
@@ -99,11 +99,14 @@ const char *HttpException::what() const throw() {
  * Returns: std::string
 */
 
-std::string HttpException::getStatusMessage(int statusCode) const {
-	for (size_t i = 0; i < _statusCodes.size(); i++) {
-		if (_statusCodes[i] == statusCode) {
-			return _statusMessages[i];
-		}
+std::string HttpException::getStatusMessage(std::string statusCode) const {
+
+	/*for (std::map<std::string, std::string>::const_iterator it = _status.begin(); it != _status.end(); ++it) {
+		std::cout << it->first << " : " << it->second << std::endl;
+	}*/
+
+	if (_status.find(statusCode) != _status.end()) {
+		return _status.find(statusCode)->second;
 	}
 	return "Unknown error";
 }
@@ -115,7 +118,7 @@ std::string HttpException::getStatusMessage(int statusCode) const {
  * Returns: int
  */
 
-int HttpException::getStatusCode(void) const {
+std::string HttpException::getStatusCode(void) const {
 	return _statusCode;
 }
 
@@ -126,8 +129,8 @@ int HttpException::getStatusCode(void) const {
  * Returns: void
  */
 
-void HttpException::setStatusMessage(std::string statusMessage, int statusCode) {
-	if (!statusMessage.empty() && statusCode >= 0) {
+void HttpException::setStatusMessage(std::string statusMessage, std::string statusCode) {
+	if (!statusMessage.empty() && atoi(statusCode.c_str()) >= 0) {
 		_init(statusCode, statusMessage);
 	}
 }
@@ -139,8 +142,8 @@ void HttpException::setStatusMessage(std::string statusMessage, int statusCode) 
  * Returns: void
  */
 
-void HttpException::setStatusCode(int statusCode) {
-	if (statusCode >= 0) {
+void HttpException::setStatusCode(std::string statusCode) {
+	if (atoi(statusCode.c_str()) >= 0) {
 		_statusCode = statusCode;
 	}
 }
@@ -154,22 +157,24 @@ void HttpException::setStatusCode(int statusCode) {
 
 void HttpException::_initDefault(void) {
 	std::ifstream file("inc/status.h");
+	std::string status;
+	std::string code;
+	std::string line;
+
 	if (file.is_open())
 	{
-		std::string line;
 		while (std::getline(file, line))
 		{
 			if (line.find("#define HTTP_") != std::string::npos)
 			{
-				std::string status = line.substr(line.find("HTTP_") + 5);
-				std::string code = status.substr(status.find(" ") + 1);
-				status = status.substr(0, status.find(" "));
-				_init(atoi(code.c_str()), status);
+				line.erase(0, line.find("HTTP_") + 5);
+				status = line.substr(0, line.find(" "));
+				line.erase(0, line.find(" ") + 1);
+				code = line;
+				_init(code, status);
 			}
 		}
-	}
-	else
-	{
+	} else {
 		std::cerr << "Unable to open file" << std::endl;
 	}
 	file.close();
@@ -181,11 +186,9 @@ void HttpException::_initDefault(void) {
  * @param message HTTP status message
  */
 
-void HttpException::_init(int code, std::string message)
+void HttpException::_init(std::string code, std::string message)
 {
-	_statusCode = code;
-	_statusMessages.push_back(message);
-	_statusCodes.push_back(code);
+	_status[code] = message;
 }
 
 /**
@@ -195,15 +198,8 @@ void HttpException::_init(int code, std::string message)
  * Returns: void
  */
 
-void HttpException::manageStatusMessage(std::string statusMessage, int statusCode) {
-	if (!statusMessage.empty() && statusCode >= 0) {
-		// if already exists, update the message
-		for (size_t i = 0; i < _statusCodes.size(); i++) {
-			if (_statusCodes[i] == statusCode) {
-				_statusMessages[i] = statusMessage;
-				return ;
-			}
-		}
+void HttpException::manageStatusMessage(std::string statusMessage, std::string statusCode) {
+	if (!statusMessage.empty() && atoi(statusCode.c_str()) >= 0) {
 		_init(statusCode, statusMessage);
 	}
 }
@@ -217,9 +213,9 @@ void HttpException::manageStatusMessage(std::string statusMessage, int statusCod
 
 std::ostream &operator<<(std::ostream &o, HttpException const &rhs) {
 	std::string color = "\033[1;37m";
-	int statusCode = rhs.getStatusCode();
+	int statusCode = atoi(rhs.getStatusCode().c_str());
 
-	if (rhs.getStatusMessage(statusCode) == "Unknown error")
+	if (rhs.getStatusMessage(rhs.getStatusCode()) == "Unknown error")
 		color = "\033[1;37m";
 	else if (statusCode >= 100 && statusCode < 200)
 		color = "\033[1;34m";
@@ -233,9 +229,9 @@ std::ostream &operator<<(std::ostream &o, HttpException const &rhs) {
 		color = "\033[1;31m";
 
 	o << color
-		<< statusCode
+		<< rhs.getStatusCode()
 		<< " "
 		<< "\033[0m"
-		<< rhs.getStatusMessage(statusCode);
+		<< rhs.getStatusMessage(rhs.getStatusCode());
 	return o;
 }

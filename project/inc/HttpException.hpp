@@ -16,8 +16,8 @@
 #include <fstream>
 #include <exception>
 #include <string>
-#include <vector>
-#include <stdlib.h>
+#include <cstdlib>
+#include <map>
 
 #include "status.h"
 
@@ -26,34 +26,33 @@ class HttpException : public std::exception
 	public:
 		// Constructor
 		HttpException(void);
-		HttpException(int statusCode);
-		HttpException(std::string statusMessage, int statusCode);
+		HttpException(std::string statusCode);
+		HttpException(std::string statusMessage, std::string statusCode);
 		virtual ~HttpException(void) throw();
 		HttpException(HttpException const &src);
 
 		HttpException &operator=(HttpException const &rhs); // Assignment operator
-		HttpException &operator<<(int statusCode); // Set status code
+		HttpException &operator<<(std::string statusCode); // Set status code
 
 		// Get/Set
-		std::string getStatusMessage(int statusCode) const;
-		int		    getStatusCode(void) const;
+		std::string getStatusMessage(std::string statusCode) const;
+		std::string getStatusCode(void) const;
 
-		void        setStatusMessage(std::string statusMessage, int statusCode);
-		void        setStatusCode(int statusCode);
+		void        setStatusMessage(std::string statusMessage, std::string statusCode);
+		void        setStatusCode(std::string statusCode);
 
 		// Methods
-		void        manageStatusMessage(std::string statusMessage, int statusCode);
+		void        manageStatusMessage(std::string statusMessage, std::string statusCode);
 
 		// throw error
 		virtual const char *what() const throw();
 
 	private:
-		int                      _statusCode;
+		std::string              _statusCode;
 
-		std::vector<std::string> _statusMessages;
-		std::vector<int>         _statusCodes;
+		std::map<std::string, std::string> _status;
 
-		void    _init(int code, std::string message);
+		void    _init(std::string code, std::string message);
 		void    _initDefault(void);
 };
 

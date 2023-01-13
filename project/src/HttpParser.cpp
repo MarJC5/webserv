@@ -97,6 +97,10 @@ std::string HttpParser::getUri(void) const {
 	return (_uri);
 }
 
+std::string HttpParser::getFile(void) const {
+	return (_file);
+}
+
 std::string HttpParser::getHost(void) const {
 	return (_host);
 }
@@ -123,13 +127,17 @@ std::string HttpParser::getStatusMessage(void) const {
 
 HttpException HttpParser::getStatus(void) const {
 	if (!_statusMessage.empty()) {
-		return HttpException(_statusMessage, atoi(_statusCode.c_str()));
+		return HttpException(_statusMessage, _statusCode);
 	}
-	return HttpException(atoi(_statusCode.c_str()));
+	return HttpException(_statusCode);
 }
 
 bool HttpParser::parsType(void) const {
 	return (_isRequest);
+}
+
+std::map<std::string, std::string> HttpParser::getHeaders(void) const {
+	return (_headers);
 }
 
 /**
@@ -174,20 +182,11 @@ void HttpParser::parse(char *buffer) {
 		std::vector <std::string> tokens = split(*it, ": ");
 		if (it == lines.begin()) {
 			std::vector <std::string> firstLine = split(*it, " ");
-			if (firstLine[0].find("HTTP") != std::string::npos) {
-				// Response
-				_httpVersion = firstLine[0];
-				_statusCode = firstLine[1];
-				_statusMessage = firstLine[2];
-				_isRequest = false;
-			} else {
-				// Request
-				_method = firstLine[0];
-				_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
-				_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
-				_httpVersion = firstLine[2];
-				_isRequest = true;
-			}
+			_method = firstLine[0];
+			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
+			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
+			_httpVersion = firstLine[2];
+			_isRequest = true;
 		} else if (tokens.size() == 2) {
 			_headers[tokens[0]] = tokens[1];
 		}
@@ -202,7 +201,7 @@ void HttpParser::parse(char *buffer) {
 			_host = hostTokens[0];
 			_port = hostTokens[1];
 		} else {
-			throw HttpException(403);
+			throw HttpException("403");
 		}
 	}
 }
@@ -288,25 +287,33 @@ void HttpParser::showHeaders(void) const {
  */
 
 
-void HttpParser::buildResponse(const std::vector<Server*> &servers) 
+void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser const &request)
 {
-	/*for (std::vector<Server*>::const_iterator it = servers.begin(); it != servers.end() ; it++) {
-		std::cout << (*it)->getIp() << std::endl;
-	}*/
 	std::map<std::string, Location*> locations;
 	std::vector<std::string> lines;
+	std::string accept;
+
 	for (std::vector<Server*>::const_iterator it = servers.begin(); it < servers.end() ; ++it) {
 		locations = (*it)->getLocations();
-		std::cout << _uri << std::endl;
-		std::cout << _file << std::endl;
-		std::cout << (locations.find(_uri)->second->getIndex()) << std::endl;
-		std::cout << (locations.find(_uri)->second->getRoot()) << std::endl;
-		lines = readFile(locations.find(_uri)->second->getRoot() + _file);
-		_statusCode = "404";
+		lines = readFile(locations.find(request.getUri())->second->getRoot() + request.getFile());
+
+		accept.empty();
+		accept = request.getHeaders().find("Accept")->second;
+
+		HttpException status("200");
+		_httpVersion = "HTTP/1.1";
+		_statusCode = status.getStatusCode();
+		_statusMessage = status.getStatusMessage(_statusCode);
+
+		_headers["Content-type"] = accept.substr(0, accept.find(','));
+		_headers["Connection"] = "Closed";
+
 		_body.empty();
-		_body += "HTTP/1.1 404 NOT FOUND\r\n";
-		_body +="Content-Type: text/html\r\n";
-		_body += "Connection: Closed\r\n";
+		_body = _httpVersion + " " + _statusCode + " " + _statusMessage + "\r\n";
+		_body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
+		_body += _headers.find("Connection")->first + ": " + _headers.find("Connection")->second + "\r\n";
+
+		// Separation between headers and body
 		_body +="\r\n";
 		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
 			_body += *it;

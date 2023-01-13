@@ -39,11 +39,14 @@ class HttpParser
 		// Request
 		std::string getMethod(void) const;
 		std::string getUri(void) const;
+		std::string getFile(void) const;
 		std::string getHost(void) const;
 		std::string getPort(void) const;
 		std::string getHttpVersion(void) const;
-		std::string getHeader(std::string header);
 		std::string getBody(void) const;
+
+		std::map<std::string, std::string> getHeaders(void) const;
+
 		bool        parsType(void) const;
 
 		// Get the status code and status message
@@ -67,7 +70,7 @@ class HttpParser
 		void setBody(std::string body);
 
 		// Build the HTTP response message with HttpParser instance variables.
-		void buildResponse(const std::vector<Server*> &servers);
+		void buildResponse(const std::vector<Server*> &servers, HttpParser const &request);
 
 		// Methods
 		void showHeaders(void) const;

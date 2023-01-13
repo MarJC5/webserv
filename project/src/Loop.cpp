@@ -205,9 +205,8 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
 		{
 			// print response
-			response = request;
 			try {
-				response.buildResponse(serv);
+				response.buildResponse(serv, request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 				std::cout << response << std::endl;
