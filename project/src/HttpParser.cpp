@@ -35,9 +35,13 @@ HttpParser &HttpParser::operator=(HttpParser const &rhs) {
 	if (this != &rhs) {
 		_method = rhs._method;
 		_uri = rhs._uri;
+		_httpVersion = rhs._httpVersion;
+		_host = rhs._host;
+		_port = rhs._port;
 		_body = rhs._body;
 		_statusCode = rhs._statusCode;
 		_statusMessage = rhs._statusMessage;
+		_isRequest = rhs._isRequest;
 		_headers = rhs._headers;
 	}
 	return (*this);
@@ -277,16 +281,30 @@ void HttpParser::showHeaders(void) const {
 }
 
 /**
+ * Method: HttpParser::buildResponse(HttpParser &request);
+ * Description: Build a response from the HTTP message.
+ */
+
+void HttpParser::buildResponse(void) {
+	this->setStatusCode("200");
+	this->setStatusMessage("OK");
+	this->_isRequest = false;
+}
+
+
+/**
  * Method: HttpParser::ostream
  */
 
 std::ostream &operator<<(std::ostream &o, HttpParser const &i) {
 	std::string c = "\033[1;37m";
 	std::string nc = "\033[0m";
-	if (i.parsType()) {
+	if (i.parsType() == true) {
+		o << "Request" << std::endl;
 		o << i.getMethod() << " " << i.getUri() << " " << i.getHttpVersion() << std::endl;
 		o << "----------------" << std::endl;
 	} else {
+		o << "Response" << std::endl;
 		o << i.getHttpVersion() << " " << i.getStatusCode() << " " << i.getStatusMessage() << std::endl;
 		o << "----------------" << std::endl;
 	}

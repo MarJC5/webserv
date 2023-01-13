@@ -194,7 +194,7 @@ void	Loop::loop(void)
 			// print request
 			try {
 				request.parse(r_buffer);
-				std::cout << response << std::endl;
+				std::cout << request << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}
@@ -205,10 +205,10 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
 		{
 			// print response
-			char *buffer = strdup("HTTP/1.1 404 OK\r");
+			response = request;
 			try {
-				response.parse(buffer);
-				std::cout << request << std::endl;
+				response.buildResponse();
+				std::cout << response << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}

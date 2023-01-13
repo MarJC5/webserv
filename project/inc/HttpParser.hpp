@@ -64,6 +64,9 @@ class HttpParser
 		void setHeader(std::string header, std::string value);
 		void setBody(std::string body);
 
+		// Build the HTTP response message with HttpParser instance variables.
+		void buildResponse(void);
+
 		// Methods
 		void showHeaders(void) const;
 		std::vector<std::string> split(std::string str, std::string delimiter);
