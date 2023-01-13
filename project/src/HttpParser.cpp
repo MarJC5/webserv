@@ -302,8 +302,12 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers)
 		std::cout << (locations.find(_uri)->second->getIndex()) << std::endl;
 		std::cout << (locations.find(_uri)->second->getRoot()) << std::endl;
 		lines = readFile(locations.find(_uri)->second->getRoot() + _file);
-		_statusCode = "200";
+		_statusCode = "404";
 		_body.empty();
+		_body += "HTTP/1.1 404 NOT FOUND\r\n";
+		_body +="Content-Type: text/html\r\n";
+		_body += "Connection: Closed\r\n";
+		_body +="\r\n";
 		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
 			_body += *it;
 			_body += "\r\n";
