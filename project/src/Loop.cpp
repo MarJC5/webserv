@@ -214,6 +214,7 @@ void	Loop::loop(void)
 				std::cout << e.what() << std::endl;
 			}
 			sendrequete();
+			close(this->tab_fd.back());
 		}
 	}
 	this->closesocket();

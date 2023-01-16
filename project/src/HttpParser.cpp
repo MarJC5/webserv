@@ -297,21 +297,22 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser c
 		locations = (*it)->getLocations();
 		lines = readFile(locations.find(request.getUri())->second->getRoot() + request.getFile());
 
-		accept.empty();
+		accept.clear();
 		accept = request.getHeaders().find("Accept")->second;
 
 		HttpException status("200");
 		_httpVersion = "HTTP/1.1";
 		_statusCode = status.getStatusCode();
-		_statusMessage = status.getStatusMessage(_statusCode);
+		_statusMessage = "OK";
 
 		_headers["Content-type"] = accept.substr(0, accept.find(','));
-		_headers["Connection"] = "Closed";
+		_headers["Date"] = "Wed, 16 Aug 2023 20:26:00 GMT";
 
-		_body.empty();
+		_body.clear();
 		_body = _httpVersion + " " + _statusCode + " " + _statusMessage + "\r\n";
+		_body += _headers.find("Date")->first + ": " + _headers.find("Date")->second + "\r\n";
 		_body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
-		_body += _headers.find("Connection")->first + ": " + _headers.find("Connection")->second + "\r\n";
+		_body += request.getHeaders().find("Connection")->first + ": " + request.getHeaders().find("Connection")->second + "\r\n";
 
 		// Separation between headers and body
 		_body +="\r\n";
