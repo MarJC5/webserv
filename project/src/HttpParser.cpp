@@ -112,6 +112,10 @@ std::string HttpParser::getPort(void) const {
 	return (_port);
 }
 
+const Location &HttpParser::getLocation() const {
+    return (_loc);
+}
+
 std::string HttpParser::getHttpVersion(void) const {
 	return (_httpVersion);
 }
@@ -297,7 +301,8 @@ void HttpParser::buildResponse(HttpParser const &request)
 	std::vector<std::string> lines;
 	std::string accept;
 
-    lines = readFile(_loc.getRoot() + request.getFile());
+    std::cout << "ICI: "<< (request.getLocation().getRoot()) << std::endl;
+    lines = readFile(request.getLocation().getRoot() + request.getFile());
 
     accept.empty();
     accept = request.getHeaders().find("Accept")->second;

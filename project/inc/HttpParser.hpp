@@ -54,6 +54,7 @@ class HttpParser
 		std::string     getStatusCode(void) const;
 		std::string     getStatusMessage(void) const;
 		HttpException   getStatus(void) const;
+        const Location        &getLocation(void) const;
 
 		// URL encoding and decoding
 		static std::string urlEncode(std::string const &str);
