@@ -28,6 +28,7 @@ class HttpParser
 {
 	public:
 		HttpParser(void);
+        HttpParser(Server &serv);
 		HttpParser(char *buffer);
 		virtual ~HttpParser(void);
 		HttpParser(HttpParser const &src);
@@ -70,7 +71,7 @@ class HttpParser
 		void setBody(std::string body);
 
 		// Build the HTTP response message with HttpParser instance variables.
-		void buildResponse(const std::vector<Server*> &servers, HttpParser const &request);
+		void buildResponse(HttpParser const &request);
 
 		// Methods
 		void showHeaders(void) const;
@@ -87,6 +88,8 @@ class HttpParser
 		std::string   _statusCode;
 		std::string   _statusMessage;
 		bool		  _isRequest;
+        Server        _serv;
+        Location      _loc;
 		std::map<std::string, std::string> _headers;
 };
 

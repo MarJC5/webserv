@@ -1,10 +1,13 @@
 #include "../inc/HttpParser.hpp"
+#include "../inc/check_location.hpp"
 
 /**
 * Method: HttpParser::consutrctor
 */
 
 HttpParser::HttpParser(void) {};
+
+HttpParser::HttpParser(Server &serv) : _serv(serv) {};
 
 HttpParser::HttpParser(char *buffer) {
 	parse(buffer);
@@ -184,6 +187,7 @@ void HttpParser::parse(char *buffer) {
 			std::vector <std::string> firstLine = split(*it, " ");
 			_method = firstLine[0];
 			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
+            _loc = check_location(_serv.getLocations(), _uri);
 			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
 			_httpVersion = firstLine[2];
 			_isRequest = true;
@@ -287,39 +291,36 @@ void HttpParser::showHeaders(void) const {
  */
 
 
-void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser const &request)
+void HttpParser::buildResponse(HttpParser const &request)
 {
 	std::map<std::string, Location*> locations;
 	std::vector<std::string> lines;
 	std::string accept;
 
-	for (std::vector<Server*>::const_iterator it = servers.begin(); it < servers.end() ; ++it) {
-		locations = (*it)->getLocations();
-		lines = readFile(locations.find(request.getUri())->second->getRoot() + request.getFile());
+    lines = readFile(_loc.getRoot() + request.getFile());
 
-		accept.empty();
-		accept = request.getHeaders().find("Accept")->second;
+    accept.empty();
+    accept = request.getHeaders().find("Accept")->second;
 
-		HttpException status("200");
-		_httpVersion = "HTTP/1.1";
-		_statusCode = status.getStatusCode();
-		_statusMessage = status.getStatusMessage(_statusCode);
+    HttpException status("200");
+    _httpVersion = "HTTP/1.1";
+    _statusCode = status.getStatusCode();
+    _statusMessage = status.getStatusMessage(_statusCode);
 
-		_headers["Content-type"] = accept.substr(0, accept.find(','));
-		_headers["Connection"] = "Closed";
+    _headers["Content-type"] = accept.substr(0, accept.find(','));
+    _headers["Connection"] = "Closed";
 
-		_body.empty();
-		_body = _httpVersion + " " + _statusCode + " " + _statusMessage + "\r\n";
-		_body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
-		_body += _headers.find("Connection")->first + ": " + _headers.find("Connection")->second + "\r\n";
+    _body.empty();
+    _body = _httpVersion + " " + _statusCode + " " + _statusMessage + "\r\n";
+    _body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
+    _body += _headers.find("Connection")->first + ": " + _headers.find("Connection")->second + "\r\n";
 
-		// Separation between headers and body
-		_body +="\r\n";
-		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
-			_body += *it;
-			_body += "\r\n";
-		}
-	}
+    // Separation between headers and body
+    _body +="\r\n";
+    for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
+        _body += *it;
+        _body += "\r\n";
+    }
 	this->_isRequest = false;
 }
 
