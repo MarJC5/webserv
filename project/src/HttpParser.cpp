@@ -1,10 +1,13 @@
 #include "../inc/HttpParser.hpp"
+#include "../inc/check_location.hpp"
 
 /**
 * Method: HttpParser::consutrctor
 */
 
 HttpParser::HttpParser(void) {};
+
+HttpParser::HttpParser(Server &serv) : _serv(serv) {};
 
 HttpParser::HttpParser(char *buffer) {
 	parse(buffer);
@@ -109,6 +112,10 @@ std::string HttpParser::getPort(void) const {
 	return (_port);
 }
 
+const Location &HttpParser::getLocation() const {
+    return (_loc);
+}
+
 std::string HttpParser::getHttpVersion(void) const {
 	return (_httpVersion);
 }
@@ -184,6 +191,7 @@ void HttpParser::parse(char *buffer) {
 			std::vector <std::string> firstLine = split(*it, " ");
 			_method = firstLine[0];
 			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
+            _loc = check_location(_serv.getLocations(), _uri);
 			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
 			_httpVersion = firstLine[2];
 			_isRequest = true;
@@ -287,15 +295,14 @@ void HttpParser::showHeaders(void) const {
  */
 
 
-void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser const &request)
+void HttpParser::buildResponse(HttpParser const &request)
 {
 	std::map<std::string, Location*> locations;
 	std::vector<std::string> lines;
 	std::string accept;
 
-	for (std::vector<Server*>::const_iterator it = servers.begin(); it < servers.end() ; ++it) {
-		locations = (*it)->getLocations();
-		lines = readFile(locations.find(request.getUri())->second->getRoot() + request.getFile());
+    std::cout << "ICI: "<< (request.getLocation().getRoot()) << std::endl;
+    lines = readFile(request.getLocation().getRoot() + request.getFile());
 
 		accept.clear();
 		accept = request.getHeaders().find("Accept")->second;
@@ -314,13 +321,12 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser c
 		_body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
 		_body += request.getHeaders().find("Connection")->first + ": " + request.getHeaders().find("Connection")->second + "\r\n";
 
-		// Separation between headers and body
-		_body +="\r\n";
-		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
-			_body += *it;
-			_body += "\r\n";
-		}
-	}
+    // Separation between headers and body
+    _body +="\r\n";
+    for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
+        _body += *it;
+        _body += "\r\n";
+    }
 	this->_isRequest = false;
 }
 

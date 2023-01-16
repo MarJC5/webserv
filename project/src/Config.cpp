@@ -55,7 +55,6 @@ void Config::parseConf(std::string fileName)
         if ((pos = findKey(*it, "server")) != std::string::npos)
         {
             numServ++;
-            std::cout << *it << std::endl;
             _server.push_back(new Server());
             if (it->find("{", pos + std::string("server").size()) != std::string::npos)
             {

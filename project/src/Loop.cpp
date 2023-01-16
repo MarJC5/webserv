@@ -151,8 +151,8 @@ void Loop::closesocket(void)
 
 void	Loop::loop(void)
 {
-	HttpParser request;
-	HttpParser response;
+	HttpParser request = HttpParser(*(serv[0]));
+	HttpParser response = HttpParser(*(serv[0]));
 	
 	int ret = 0;
 	int temp = 0;
@@ -206,7 +206,7 @@ void	Loop::loop(void)
 		{
 			// print response
 			try {
-				response.buildResponse(serv, request);
+				response.buildResponse(request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 				std::cout << response << std::endl;
