@@ -7,6 +7,7 @@
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
 	FD_ZERO(&this->setfd);
+	this->i = 0;
 	return ;
 }
 
@@ -57,26 +58,7 @@ void Loop::createsocket(void)
 }
 
 void Loop::setstruct(void)
-{
-	this->i = 0;
-	
-	/*
-	struct addrinfo temp;
-	struct addrinfo *rep;
-
-	temp.ai_family = AF_UNSPEC;
-    temp.ai_socktype = SOCK_DGRAM;
-    temp.ai_flags = AI_PASSIVE;
-    temp.ai_protocol = 0;
-    temp.ai_canonname = NULL;
-    temp.ai_addr = NULL;
-    temp.ai_next = NULL;
-
-	int ret = getaddrinfo(NULL, "8080", &temp, &rep);
-	if (ret != 0)
-		std::cout << "Erreur de getaddrinfo" << std::endl;
-	*/
-
+{	
 	if (this->i < this->serv.size())
 	{
 		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
@@ -160,21 +142,26 @@ void	Loop::loop(void)
 	fd_set w;
 	try
 	{
-		std::cout << "--- loop ---\n";
-		std::cout << this->tab_socket.back() << std::endl;
-		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
- 		std::cout << this->tab_socket.back() << std::endl;
-		this->setstruct();
-		this->socksetopt();
-		this->socketbind();
-		this->socketlisten();
-		std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+		size_t i = 0;
+		while (i < this->serv.size())
+		{
+			std::cout << "--- loop --- " << i << "\n";
+			this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
+			this->setstruct();
+			this->socksetopt();
+			this->socketbind();
+			this->socketlisten();
+			i++;
+			std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+		}
 	}
 	catch (std::exception &tmp)
 	{
 		std::cout << "erreur : loop initialisation\n";
 		ret = 1;
 	}
+	std::cout << this->tab_socket.front() << std::endl;
+	std::cout << this->tab_socket.back() << std::endl;
 	FD_ZERO(&this->setfd);
 	FD_SET(this->tab_socket.back(), &this->setfd);
 
