@@ -16,10 +16,10 @@ std::vector<std::string>::const_iterator getClosingBracket(std::vector<std::stri
             if(count != 1)
                 count--;
             else
-                return (++it);
+                return (it);
         }
     }
-    return (++it);
+    return (it);
 }
 
 Config::Config(void): _server() {}
