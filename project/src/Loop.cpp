@@ -58,13 +58,13 @@ void Loop::createsocket(void)
 }
 
 void Loop::setstruct(void)
-{	
+{
+	bzero(&this->sockaddr, sizeof(this->sockaddr));
 	if (this->i < this->serv.size())
 	{
 		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		//int temp = atoi(this->serv[i]->getIp().c_str());
 		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
@@ -80,7 +80,6 @@ void Loop::socksetopt(void)
 
 void Loop::socketbind(void)
 {
-	
 	if (bind(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
 		throw std::exception(); // temporaire
 }
@@ -138,15 +137,14 @@ void	Loop::loop(void)
 	
 	int ret = 0;
 	int temp = 0;
-	fd_set r;
-	fd_set w;
+	int max_fd = 0;
 	try
 	{
 		size_t i = 0;
 		while (i < this->serv.size())
 		{
 			std::cout << "--- loop --- " << i << "\n";
-			this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
+			this->createsocket(); // stock ici dans 1 tableau pour la suite aussi et ensuite check avec select cette plage de fd crée
 			this->setstruct();
 			this->socksetopt();
 			this->socketbind();
@@ -162,14 +160,24 @@ void	Loop::loop(void)
 	}
 	std::cout << this->tab_socket.front() << std::endl;
 	std::cout << this->tab_socket.back() << std::endl;
+
+	i = 0;
+	std::list<int> temporaire(this->tab_socket);
+	temporaire.reverse();
 	FD_ZERO(&this->setfd);
-	FD_SET(this->tab_socket.back(), &this->setfd);
+	while (i < this->tab_socket.size())
+	{
+		if (temporaire.back() > max_fd)
+			max_fd = temporaire.back();
+		FD_SET(temporaire.back(), &this->setfd);
+		temporaire.pop_back();
+		i++;
+	}
 
 	while (ret != 1)
 	{
-		r = this->setfd;
-		w = this->setfd;
-		temp = select(this->tab_socket.back() + 1, &r, &w, NULL, NULL);
+		temp = select(max_fd + 1, &this->setfd, NULL, NULL, NULL);
+		std::cout << "temp : " << temp << std::endl;
 		if (temp == -1)
 			ret = 1;
 
@@ -201,6 +209,7 @@ void	Loop::loop(void)
 				std::cout << e.what() << std::endl;
 			}
 			sendrequete();
+			close(this->tab_fd.back());
 		}
 	}
 	this->closesocket();
