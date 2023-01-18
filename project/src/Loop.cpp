@@ -92,17 +92,15 @@ void Loop::socketlisten(void)
 
 void Loop::socketaccept(void)
 {
-	struct sockaddr_in client;
-	socklen_t temp = sizeof(client);
-	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&client, &temp));
-	if (this->tab_fd.back() == -1)
+	this->tab_fd = accept(this->fd_accept, NULL, NULL);
+	if (this->tab_fd == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::readrequete(void)
 {
 	bzero(this->r_buffer, sizeof(this->r_buffer));
-	this->r_octet = recv(this->tab_fd.back(), this->r_buffer, sizeof(this->r_buffer), 0);
+	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -110,7 +108,7 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->r_octet = send(this->tab_fd.back(), this->w_buffer, sizeof(this->w_buffer), 0);
+	this->r_octet = send(this->tab_fd, this->w_buffer, sizeof(this->w_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 }
@@ -119,15 +117,24 @@ void Loop::closesocket(void)
 {
 	size_t i = 0;
 	std::list<int>::iterator it = this->tab_socket.begin();
-	std::list<int>::iterator itt = this->tab_fd.begin();
 	while (i < this->tab_socket.size())
 	{
 		close(*it);
-		close(*itt);
 		it++;
-		itt++;
 		i++;
 	}
+}
+
+int Loop::getlist(int index)
+{
+	std::list<int>::iterator it = this->tab_socket.begin();
+	int i = 0;
+	while (i != index)
+	{
+		*it++;
+		i++;
+	}
+	return (*it);
 }
 
 void	Loop::loop(void)
@@ -135,9 +142,11 @@ void	Loop::loop(void)
 	HttpParser request;
 	HttpParser response;
 	
+	int it = 0;
 	int ret = 0;
 	int temp = 0;
 	int max_fd = 0;
+	fd_set temp_fd;
 	try
 	{
 		size_t i = 0;
@@ -162,44 +171,50 @@ void	Loop::loop(void)
 	std::cout << this->tab_socket.back() << std::endl;
 
 	i = 0;
-	std::list<int> temporaire(this->tab_socket);
-	temporaire.reverse();
 	FD_ZERO(&this->setfd);
 	while (i < this->tab_socket.size())
 	{
-		if (temporaire.back() > max_fd)
-			max_fd = temporaire.back();
-		FD_SET(temporaire.back(), &this->setfd);
-		temporaire.pop_back();
+		it = getlist(i);
+		if (it > max_fd)
+			max_fd = it;
+		FD_SET(it, &this->setfd);
 		i++;
 	}
 
 	while (ret != 1)
 	{
-		temp = select(max_fd + 1, &this->setfd, NULL, NULL, NULL);
+		std::memcpy(&temp_fd, &this->setfd, sizeof(this->setfd));
+		temp = select(max_fd + 1, &temp_fd, NULL, NULL, NULL);
 		std::cout << "temp : " << temp << std::endl;
 		if (temp == -1)
 			ret = 1;
 
 		// envoie message (request)
-		if (FD_ISSET(this->tab_socket.back(), &this->setfd))
+		i = 1;
+		while (i < (size_t)max_fd)
 		{
-			socketaccept();
-			readrequete();
-			// print request
-			try {
-				request.parse(r_buffer);
-				std::cout << request << std::endl;
-			} catch (HttpException &e) {
-				std::cout << e.what() << std::endl;
+			std::cout << i << " : i" << std::endl;
+			this->fd_accept = getlist(i);
+			if (FD_ISSET(this->fd_accept, &temp_fd))
+			{
+				std::cout << "ca rentre avec un fd set a : " << this->fd_accept << std::endl;
+				socketaccept();
+				readrequete();
+				// print request
+				try {
+					request.parse(r_buffer);
+					std::cout << request << std::endl;
+				} catch (HttpException &e) {
+					std::cout << e.what() << std::endl;
+				}
+				FD_SET(this->tab_fd, &temp_fd);
 			}
-			FD_SET(this->tab_fd.back(), &this->setfd);
+			i++;
 		}
 
 		// lis message (reponse)
-		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
+		if (FD_ISSET(this->tab_fd, &temp_fd))
 		{
-			// print response
 			try {
 				response.buildResponse(serv, request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
@@ -209,7 +224,10 @@ void	Loop::loop(void)
 				std::cout << e.what() << std::endl;
 			}
 			sendrequete();
-			close(this->tab_fd.back());
+			this->fd_accept = 0;
+			close(this->tab_fd);
+			FD_CLR(this->tab_fd, &temp_fd);
+			std::cout << "ca rentre ici" << std::endl;
 		}
 	}
 	this->closesocket();
@@ -229,7 +247,7 @@ const struct sockaddr_in Loop::get_sockaddr(void) const
 	return (this->sockaddr);
 }
 
-const std::list<int> Loop::get_fd_socket(void) const
+int Loop::get_fd_socket(void) const
 {
 	return (this->tab_fd);
 }

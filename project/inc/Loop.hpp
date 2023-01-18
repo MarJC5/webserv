@@ -32,6 +32,7 @@ class Loop
 		Loop(Loop const & src );
 		~Loop();
 		Loop &operator=(Loop &rhs);
+		int getlist(int index);
 
 		//Construit mes sockets avec les info de la class server
 		void createsocket(void); // crée un socket
@@ -51,7 +52,7 @@ class Loop
 		// tous mes accesseurs
 		const std::list<int> get_socket(void) const;
 		const struct sockaddr_in get_sockaddr(void) const;
-		const std::list<int> get_fd_socket(void) const;
+		int get_fd_socket(void) const;
 		int get_read_octet(void);
 		const char *get_read_buffer(void) const;
 		int get_write_octet(void);
@@ -63,14 +64,15 @@ class Loop
 
 	private:
 		std::list<int> tab_socket; // pour stocker les multiples sockets
-		std::list<int> tab_fd;	  // tab de fd de mes sockets, même indice
-		std::list<int>::iterator it_fd;
+		int tab_fd;	  // tab de fd de mes sockets, même indice
+		std::list<int>::iterator it_socket;
 
 		std::list<sockaddr_in> sockaddr_vect; // struct pour le socket qui contient plusieur info (ip, port, ...) à supprimer si pas utilisé à la fin
 		struct sockaddr_in sockaddr;
 		size_t i;
 
 		fd_set setfd;
+		int	   fd_accept;
 
 		int r_octet; // le nombre d'octet read
 		char r_buffer[1024]; // le buffer pour le recv (read)
