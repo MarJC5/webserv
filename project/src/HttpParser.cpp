@@ -191,8 +191,8 @@ void HttpParser::parse(char *buffer) {
 			std::vector <std::string> firstLine = split(*it, " ");
 			_method = firstLine[0];
 			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
-            _loc = check_location(_serv.getLocations(), _uri);
-			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
+            _file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
+            _loc = check_location(_serv.getLocations(), _uri, _file);
 			_httpVersion = firstLine[2];
 			_isRequest = true;
 		} else if (tokens.size() == 2) {
@@ -301,7 +301,7 @@ void HttpParser::buildResponse(HttpParser const &request)
 	std::vector<std::string> lines;
 	std::string accept;
 
-    std::cout << "ICI: "<< (request.getLocation().getRoot()) << std::endl;
+    std::cout << "request path: "<< (request.getLocation().getRoot()) << request.getFile() << std::endl;
     lines = readFile(request.getLocation().getRoot() + request.getFile());
 
 		accept.clear();
