@@ -206,10 +206,10 @@ void	Loop::loop(void)
 		{
 			// print response
 			try {
-				response.buildResponse(request);
+				response = request;
+				response.buildResponse(serv, request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-				std::cout << response << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}

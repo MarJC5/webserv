@@ -18,6 +18,7 @@
 #include <map>
 #include <numeric>
 #include <cstring>
+#include <ctime>
 #include <stdlib.h>
 
 #include "HttpException.hpp"
@@ -72,7 +73,7 @@ class HttpParser
 		void setBody(std::string body);
 
 		// Build the HTTP response message with HttpParser instance variables.
-		void buildResponse(HttpParser const &request);
+		void buildResponse(const std::vector<Server*> &servers, HttpParser const &request);
 
 		// Methods
 		void showHeaders(void) const;

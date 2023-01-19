@@ -17,7 +17,19 @@ HttpParser::HttpParser(char *buffer) {
  * Method: HttpParser::destructor
  */
 
-HttpParser::~HttpParser(void) {};
+HttpParser::~HttpParser(void) {
+	_headers.clear();
+	_method.clear();
+	_uri.clear();
+	_file.clear();
+	_host.clear();
+	_port.clear();
+	_httpVersion.clear();
+	_body.clear();
+	_headers.clear();
+	_statusCode.clear();
+	_statusMessage.clear();
+};
 
 /**
  * Method: HttpParser::copy
@@ -36,19 +48,18 @@ HttpParser::HttpParser(HttpParser const &src) {
 
 HttpParser &HttpParser::operator=(HttpParser const &rhs) {
 	if (this != &rhs) {
-		_method = rhs._method;
-		_uri = rhs._uri;
-		_file = rhs._file;
-		_httpVersion = rhs._httpVersion;
-		_host = rhs._host;
-		_port = rhs._port;
-		_body = rhs._body;
-		_statusCode = rhs._statusCode;
-		_statusMessage = rhs._statusMessage;
-		_isRequest = rhs._isRequest;
-		_headers = rhs._headers;
+		_method = rhs.getMethod();
+		_uri = rhs.getUri();
+		_file = rhs.getFile();
+		_host = rhs.getHost();
+		_port = rhs.getPort();
+		_httpVersion = rhs.getHttpVersion();
+		_body = rhs.getBody();
+		_headers = rhs.getHeaders();
+		_statusCode = rhs.getStatusCode();
+		_statusMessage = rhs.getStatusMessage();
 	}
-	return (*this);
+	return *this;
 }
 
 /**
@@ -113,7 +124,7 @@ std::string HttpParser::getPort(void) const {
 }
 
 const Location &HttpParser::getLocation() const {
-    return (_loc);
+	return (_loc);
 }
 
 std::string HttpParser::getHttpVersion(void) const {
@@ -191,8 +202,8 @@ void HttpParser::parse(char *buffer) {
 			std::vector <std::string> firstLine = split(*it, " ");
 			_method = firstLine[0];
 			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
-            _file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
-            _loc = check_location(_serv.getLocations(), _uri, _file);
+			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
+			_loc = check_location(_serv.getLocations(), _uri, _file);
 			_httpVersion = firstLine[2];
 			_isRequest = true;
 		} else if (tokens.size() == 2) {
@@ -295,41 +306,66 @@ void HttpParser::showHeaders(void) const {
  */
 
 
-void HttpParser::buildResponse(HttpParser const &request)
+void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser const &request)
 {
+	HttpException status;
 	std::map<std::string, Location*> locations;
 	std::vector<std::string> lines;
 	std::string accept;
 
-    std::cout << "request path: "<< (request.getLocation().getRoot()) << request.getFile() << std::endl;
-    lines = readFile(request.getLocation().getRoot() + request.getFile());
+	for (std::vector<Server*>::const_iterator it = servers.begin(); it < servers.end() ; ++it) {
 
-		accept.clear();
+		std::cout << "request path: "<< (request.getLocation().getRoot()) << request.getFile() << std::endl;
+		lines = readFile(request.getLocation().getRoot() + request.getFile());
+
+		if (!accept.empty())
+			accept.clear();
 		accept = request.getHeaders().find("Accept")->second;
 
-		HttpException status("200");
-		_httpVersion = "HTTP/1.1";
-		_statusCode = status.getStatusCode();
-		_statusMessage = "OK";
+		status << "200";
+		this->_statusCode = status.getStatusCode();
+		this->_statusMessage = status.getStatusMessage(status.getStatusCode());
 
-		_headers["Content-type"] = accept.substr(0, accept.find(','));
-		_headers["Date"] = "Wed, 16 Aug 2023 20:26:00 GMT";
+		// Content-Type
+		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
 
-		_body.clear();
-		_body = _httpVersion + " " + _statusCode + " " + _statusMessage + "\r\n";
-		_body += _headers.find("Date")->first + ": " + _headers.find("Date")->second + "\r\n";
-		_body += _headers.find("Content-type")->first + ": " + _headers.find("Content-type")->second + "\r\n";
-		_body += request.getHeaders().find("Connection")->first + ": " + request.getHeaders().find("Connection")->second + "\r\n";
+		// RFC 1123 (HTTP date format)
+		time_t now = time(0);
+		struct tm tstruct;
+		char buf[80];
+		tstruct = *gmtime(&now);
+		std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &tstruct);
+		this->_headers["Date"] = buf;
 
-    // Separation between headers and body
-    _body +="\r\n";
-    for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
-        _body += *it;
-        _body += "\r\n";
-    }
+		// Content-Length (file size)
+		int contentLength = 0;
+		for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
+			contentLength += (*it).size();
+		}
+		std::ostringstream oss;
+		oss << contentLength;
+		this->_headers["Content-Length"] = oss.str();
+
+		// Body
+		if (!_body.empty())
+			this->_body.clear();
+
+		std::ostringstream ossb;
+		ossb << this->_httpVersion << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+		     << "Content-type: " << this->_headers["Content-type"] << "\r\n"
+		     << "Date: " << this->_headers["Date"] << "\r\n"
+		     << "Connection: " << this->_headers["Connection"] << "\r\n"
+		     << "Content-Length: " << this->_headers["Content-Length"] << "\r\n\r\n";
+
+		for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end() ; ++it) {
+			ossb << (*it) << "\r\n";
+		}
+		this->_body = ossb.str();
+	}
 	this->_isRequest = false;
+	std::cout << "Response: " << std::endl;
+	std::cout << *this << std::endl;
 }
-
 
 /**
  * Method: HttpParser::ostream
@@ -338,6 +374,7 @@ void HttpParser::buildResponse(HttpParser const &request)
 std::ostream &operator<<(std::ostream &o, HttpParser const &i) {
 	std::string c = "\033[1;37m";
 	std::string nc = "\033[0m";
+
 	if (i.parsType()) {
 		o << "Request" << std::endl;
 		o << i.getMethod() << " " << i.getUri() << " " << i.getHttpVersion() << std::endl;
@@ -347,6 +384,7 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i) {
 		o << i.getHttpVersion() << " " << i.getStatusCode() << " " << i.getStatusMessage() << std::endl;
 		o << "----------------" << std::endl;
 	}
+
 	if (!i.getMethod().empty())
 		o << c << std::left << std::setw(18) << "Method" << nc << ": " << i.getMethod() << std::endl;
 	if (!i.getUri().empty())

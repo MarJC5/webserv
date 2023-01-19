@@ -15,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <exception>
+#include <sstream>
 #include <string>
 #include <cstdlib>
 #include <map>
@@ -24,36 +25,34 @@
 class HttpException : public std::exception
 {
 	public:
-		// Constructor
-		HttpException(void);
-		HttpException(std::string statusCode);
-		HttpException(std::string statusMessage, std::string statusCode);
-		virtual ~HttpException(void) throw();
-		HttpException(HttpException const &src);
+	// Constructor
+	HttpException(void);
+	HttpException(std::string statusCode);
+	HttpException(std::string statusMessage, std::string statusCode);
+	virtual ~HttpException(void);
+	HttpException(HttpException const &src);
 
-		HttpException &operator=(HttpException const &rhs); // Assignment operator
-		HttpException &operator<<(std::string statusCode); // Set status code
+	HttpException &operator=(HttpException const &rhs); // Assignment operator
+	HttpException &operator<<(std::string statusCode); // Set status code
 
-		// Get/Set
-		std::string getStatusMessage(std::string statusCode) const;
-		std::string getStatusCode(void) const;
+	// Get/Set
+	std::string getStatusMessage(std::string statusCode) const;
+	std::string getStatusCode(void) const;
 
-		void        setStatusMessage(std::string statusMessage, std::string statusCode);
-		void        setStatusCode(std::string statusCode);
+	std::map<std::string, std::string> getStatus(void) const;
 
-		// Methods
-		void        manageStatusMessage(std::string statusMessage, std::string statusCode);
+	void        setStatusMessage(std::string statusMessage, std::string statusCode);
+	void        setStatusCode(std::string statusCode);
 
-		// throw error
-		virtual const char *what() const throw();
+	// throw error
+	virtual const char *what() const throw();
 
 	private:
-		std::string              _statusCode;
+	std::string              _statusCode;
 
-		std::map<std::string, std::string> _status;
+	std::map<std::string, std::string> _status;
 
-		void    _init(std::string code, std::string message);
-		void    _initDefault(void);
+	void    _initDefault(void);
 };
 
 std::ostream &operator<<(std::ostream &o, HttpException const &rhs);
