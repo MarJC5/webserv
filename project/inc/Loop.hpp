@@ -77,6 +77,7 @@ class Loop
 		struct timeval timeout;
 		fd_set temp_fd;
 		int max_fd;
+		int temp;
 
 		int r_octet; // le nombre d'octet read
 		char r_buffer[1024]; // le buffer pour le recv (read)

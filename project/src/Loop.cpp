@@ -6,6 +6,8 @@
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
+	this->timeout.tv_sec = 60;
+	this->timeout.tv_usec = 0;
 	FD_ZERO(&this->setfd);
 	this->i = 0;
 	return ;
@@ -142,10 +144,6 @@ void	Loop::loop(void)
 {
 	HttpParser request;
 	HttpParser response;
-	
-	int it = 0;
-	int ret = 0;
-	int temp = 0;
 	try
 	{
 		size_t i = 0;
@@ -163,10 +161,10 @@ void	Loop::loop(void)
 	catch (std::exception &tmp)
 	{
 		std::cout << "erreur : loop initialisation\n";
-		ret = 1;
+		return ;
 	}
-
 	i = 0;
+	int it = 0;
 	FD_ZERO(&this->setfd);
 	while (i < this->tab_socket.size())
 	{
@@ -176,22 +174,18 @@ void	Loop::loop(void)
 		FD_SET(it, &this->setfd);
 		i++;
 	}
-
-	this->timeout.tv_sec = 60;
-	this->timeout.tv_usec = 0;
-
+	int ret = 0;
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &this->timeout);
-		if (temp == -1)
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &this->timeout);
+		if (this->temp == -1)
 			ret = 1;
-		if (temp == 0)
+		if (this->temp == 0)
 		{
 			ret = 1;
 			std::cout << "TIMEOUT" << std::endl;
 		}
-
 		// envoie message (request)
 		i = 1;
 		while (i < (size_t)this->max_fd)
@@ -212,7 +206,6 @@ void	Loop::loop(void)
 			}
 			i++;
 		}
-
 		// lis message (reponse)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
