@@ -63,6 +63,7 @@ void Loop::setstruct(void)
 	if (this->i < this->serv.size())
 	{
 		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
+		std::cout << "resultat de inet_addr : " << inet_addr(this->serv[i]->getIp().c_str()) << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
 		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
@@ -152,14 +153,13 @@ void	Loop::loop(void)
 		size_t i = 0;
 		while (i < this->serv.size())
 		{
-			std::cout << "--- loop --- " << i << "\n";
 			this->createsocket(); // stock ici dans 1 tableau pour la suite aussi et ensuite check avec select cette plage de fd crée
 			this->setstruct();
 			this->socksetopt();
 			this->socketbind();
 			this->socketlisten();
 			i++;
-			std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+			std::cout << "Une connexion a ete etablie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
 		}
 	}
 	catch (std::exception &tmp)
@@ -167,8 +167,6 @@ void	Loop::loop(void)
 		std::cout << "erreur : loop initialisation\n";
 		ret = 1;
 	}
-	std::cout << this->tab_socket.front() << std::endl;
-	std::cout << this->tab_socket.back() << std::endl;
 
 	i = 0;
 	FD_ZERO(&this->setfd);
@@ -181,23 +179,28 @@ void	Loop::loop(void)
 		i++;
 	}
 
+	this->timeout.tv_sec = 60;
+	this->timeout.tv_usec = 0;
+
 	while (ret != 1)
 	{
 		std::memcpy(&temp_fd, &this->setfd, sizeof(this->setfd));
-		temp = select(max_fd + 1, &temp_fd, NULL, NULL, NULL);
-		std::cout << "temp : " << temp << std::endl;
+		temp = select(max_fd + 1, &temp_fd, NULL, NULL, &this->timeout);
 		if (temp == -1)
 			ret = 1;
+		if (temp == 0)
+		{
+			ret = 1;
+			std::cout << "TIMEOUT" << std::endl;
+		}
 
 		// envoie message (request)
 		i = 1;
 		while (i < (size_t)max_fd)
 		{
-			std::cout << i << " : i" << std::endl;
 			this->fd_accept = getlist(i);
 			if (FD_ISSET(this->fd_accept, &temp_fd))
 			{
-				std::cout << "ca rentre avec un fd set a : " << this->fd_accept << std::endl;
 				socketaccept();
 				readrequete();
 				// print request
@@ -227,7 +230,6 @@ void	Loop::loop(void)
 			this->fd_accept = 0;
 			close(this->tab_fd);
 			FD_CLR(this->tab_fd, &temp_fd);
-			std::cout << "ca rentre ici" << std::endl;
 		}
 	}
 	this->closesocket();

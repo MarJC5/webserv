@@ -22,6 +22,7 @@
 #include <list>
 #include <vector>
 #include <netinet/in.h>
+#include <sys/select.h>
 #include "HttpParser.hpp"
 
 class Loop
@@ -73,6 +74,7 @@ class Loop
 
 		fd_set setfd;
 		int	   fd_accept;
+		struct timeval timeout;
 
 		int r_octet; // le nombre d'octet read
 		char r_buffer[1024]; // le buffer pour le recv (read)
