@@ -351,7 +351,7 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser c
 			this->_body.clear();
 
 		std::ostringstream ossb;
-		ossb << this->_httpVersion << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+		ossb << request.getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
 		     << "Content-type: " << this->_headers["Content-type"] << "\r\n"
 		     << "Date: " << this->_headers["Date"] << "\r\n"
 		     << "Connection: " << this->_headers["Connection"] << "\r\n"

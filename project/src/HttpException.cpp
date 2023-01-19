@@ -28,7 +28,7 @@ HttpException::HttpException(std::string statusCode) {
  * Returns: N/A
  */
 
-HttpException::~HttpException(void) {
+HttpException::~HttpException(void) throw(){
 	_statusCode.clear();
 }
 
