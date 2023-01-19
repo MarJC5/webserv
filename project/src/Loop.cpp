@@ -180,14 +180,9 @@ void	Loop::loop(void)
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &this->timeout);
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, NULL);
 		if (this->temp == -1)
 			ret = 1;
-		if (this->temp == 0)
-		{
-			ret = 1;
-			std::cout << "TIMEOUT" << std::endl;
-		}
 		// envoie message (request)
 		i = 1;
 		while (i < (size_t)this->max_fd)
@@ -215,7 +210,7 @@ void	Loop::loop(void)
 		{
 			try {
 				response = request;
-				response.buildResponse(serv, request);
+				response.buildResponse();
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			} catch (HttpException &e) {
