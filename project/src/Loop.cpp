@@ -146,8 +146,6 @@ void	Loop::loop(void)
 	int it = 0;
 	int ret = 0;
 	int temp = 0;
-	int max_fd = 0;
-	fd_set temp_fd;
 	try
 	{
 		size_t i = 0;
@@ -173,8 +171,8 @@ void	Loop::loop(void)
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
-		if (it > max_fd)
-			max_fd = it;
+		if (it > this->max_fd)
+			this->max_fd = it;
 		FD_SET(it, &this->setfd);
 		i++;
 	}
@@ -184,8 +182,8 @@ void	Loop::loop(void)
 
 	while (ret != 1)
 	{
-		std::memcpy(&temp_fd, &this->setfd, sizeof(this->setfd));
-		temp = select(max_fd + 1, &temp_fd, NULL, NULL, &this->timeout);
+		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
+		temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &this->timeout);
 		if (temp == -1)
 			ret = 1;
 		if (temp == 0)
@@ -196,10 +194,10 @@ void	Loop::loop(void)
 
 		// envoie message (request)
 		i = 1;
-		while (i < (size_t)max_fd)
+		while (i < (size_t)this->max_fd)
 		{
 			this->fd_accept = getlist(i);
-			if (FD_ISSET(this->fd_accept, &temp_fd))
+			if (FD_ISSET(this->fd_accept, &this->temp_fd))
 			{
 				socketaccept();
 				readrequete();
@@ -210,13 +208,13 @@ void	Loop::loop(void)
 				} catch (HttpException &e) {
 					std::cout << e.what() << std::endl;
 				}
-				FD_SET(this->tab_fd, &temp_fd);
+				FD_SET(this->tab_fd, &this->temp_fd);
 			}
 			i++;
 		}
 
 		// lis message (reponse)
-		if (FD_ISSET(this->tab_fd, &temp_fd))
+		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
 			try {
 				response.buildResponse(serv, request);
@@ -229,7 +227,7 @@ void	Loop::loop(void)
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->tab_fd);
-			FD_CLR(this->tab_fd, &temp_fd);
+			FD_CLR(this->tab_fd, &this->temp_fd);
 		}
 	}
 	this->closesocket();
