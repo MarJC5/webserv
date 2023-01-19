@@ -198,6 +198,7 @@ void	Loop::loop(void)
 				socketaccept();
 				readrequete();
 				// print request
+				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
 				try {
 					request.parse(r_buffer);
 					std::cout << request << std::endl;
@@ -213,10 +214,10 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
 			try {
+				response = request;
 				response.buildResponse(serv, request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-				std::cout << response << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}

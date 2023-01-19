@@ -57,6 +57,7 @@ class HttpParser
 		std::string     getStatusCode(void) const;
 		std::string     getStatusMessage(void) const;
 		HttpException   getStatus(void) const;
+		const Server			&getServer(void) const;
         const Location        &getLocation(void) const;
 
 		// URL encoding and decoding
@@ -67,6 +68,8 @@ class HttpParser
 		void setStatus(std::string statusCode, std::string statusMessage);
 		void setStatusMessage(std::string statusMessage);
 		void setStatusCode(std::string statusCode);
+
+		void setServ(const Server &serv);
 
 		void setMethod(std::string method);
 		void setUri(std::string uri);

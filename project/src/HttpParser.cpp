@@ -99,6 +99,11 @@ void HttpParser::setHeader(std::string header, std::string value) {
 	_headers[header] = value;
 }
 
+
+void HttpParser::setServ(const Server &serv) {
+	_serv = serv;
+}
+
 /**
  * Methods: HttpParser::getters
  */
@@ -145,6 +150,10 @@ std::string HttpParser::getStatusMessage(void) const {
 
 HttpException HttpParser::getStatus(void) const {
 	return _status;
+}
+
+const Server &HttpParser::getServer() const {
+	return _serv;
 }
 
 bool HttpParser::parsType(void) const {

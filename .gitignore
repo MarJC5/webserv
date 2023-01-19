@@ -31,3 +31,4 @@
 *.out
 *.app
 /project/webserv
+.idea/discord.xml
