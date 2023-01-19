@@ -51,6 +51,8 @@ class HttpParser
 
 		bool        parsType(void) const;
 
+
+
 		// Get the status code and status message
 		std::string     getStatusCode(void) const;
 		std::string     getStatusMessage(void) const;
@@ -93,6 +95,7 @@ class HttpParser
         Server        _serv;
         Location      _loc;
 		std::map<std::string, std::string> _headers;
+		HttpException _status;
 };
 
 std::ostream &operator<<(std::ostream &o, HttpParser const &rhs);

@@ -128,7 +128,7 @@ const Location &HttpParser::getLocation() const {
 }
 
 std::string HttpParser::getHttpVersion(void) const {
-	return (_httpVersion);
+	return (_httpVersion.substr(0, _httpVersion.find_last_not_of(" \r\n\t") + 1));
 }
 
 std::string HttpParser::getBody(void) const {
@@ -136,7 +136,7 @@ std::string HttpParser::getBody(void) const {
 }
 
 std::string HttpParser::getStatusCode(void) const {
-	return (_statusCode);
+	return (_statusCode.substr(0, _statusCode.find_last_not_of(" \r\n\t") + 1));
 }
 
 std::string HttpParser::getStatusMessage(void) const {
@@ -144,10 +144,7 @@ std::string HttpParser::getStatusMessage(void) const {
 }
 
 HttpException HttpParser::getStatus(void) const {
-	if (!_statusMessage.empty()) {
-		return HttpException(_statusMessage, _statusCode);
-	}
-	return HttpException(_statusCode);
+	return _status;
 }
 
 bool HttpParser::parsType(void) const {
@@ -308,7 +305,6 @@ void HttpParser::showHeaders(void) const {
 
 void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser const &request)
 {
-	HttpException status;
 	std::map<std::string, Location*> locations;
 	std::vector<std::string> lines;
 	std::string accept;
@@ -322,9 +318,9 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser c
 			accept.clear();
 		accept = request.getHeaders().find("Accept")->second;
 
-		status << "200";
-		this->_statusCode = status.getStatusCode();
-		this->_statusMessage = status.getStatusMessage(status.getStatusCode());
+		_status << "200";
+		this->_statusCode = _status.getStatusCode();
+		this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
 
 		// Content-Type
 		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
@@ -363,7 +359,6 @@ void HttpParser::buildResponse(const std::vector<Server*> &servers, HttpParser c
 		this->_body = ossb.str();
 	}
 	this->_isRequest = false;
-	std::cout << "Response: " << std::endl;
 	std::cout << *this << std::endl;
 }
 
