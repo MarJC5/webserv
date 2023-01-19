@@ -126,6 +126,7 @@ void Loop::closesocket(void)
 		it++;
 		i++;
 	}
+	FD_ZERO(&this->setfd);
 }
 
 int Loop::getlist(int index)
@@ -169,6 +170,7 @@ void	Loop::loop(void)
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
+		std::cout << "fd_socket : " << i << std::endl;
 		if (it > this->max_fd)
 			this->max_fd = it;
 		FD_SET(it, &this->setfd);
@@ -203,6 +205,7 @@ void	Loop::loop(void)
 					std::cout << e.what() << std::endl;
 				}
 				FD_SET(this->tab_fd, &this->temp_fd);
+				break ;
 			}
 			i++;
 		}
@@ -222,6 +225,7 @@ void	Loop::loop(void)
 			close(this->fd_accept);
 			close(this->tab_fd);
 			FD_CLR(this->tab_fd, &this->temp_fd);
+			FD_ZERO(&this->temp_fd);
 		}
 	}
 	this->closesocket();
