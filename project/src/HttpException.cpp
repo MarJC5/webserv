@@ -29,7 +29,7 @@ HttpException::HttpException(std::string statusCode) {
  */
 
 HttpException::~HttpException(void) throw() {
-_statusCode.clear();
+  _statusCode.clear();
 }
 
 /**
