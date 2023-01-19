@@ -219,6 +219,7 @@ void	Loop::loop(void)
 			}
 			sendrequete();
 			this->fd_accept = 0;
+			close(this->fd_accept);
 			close(this->tab_fd);
 			FD_CLR(this->tab_fd, &this->temp_fd);
 		}
