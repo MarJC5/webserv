@@ -6,7 +6,10 @@
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
+	this->timeout.tv_sec = 60;
+	this->timeout.tv_usec = 0;
 	FD_ZERO(&this->setfd);
+	this->i = 0;
 	return ;
 }
 
@@ -58,31 +61,13 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	this->i = 0;
-	
-	/*
-	struct addrinfo temp;
-	struct addrinfo *rep;
-
-	temp.ai_family = AF_UNSPEC;
-    temp.ai_socktype = SOCK_DGRAM;
-    temp.ai_flags = AI_PASSIVE;
-    temp.ai_protocol = 0;
-    temp.ai_canonname = NULL;
-    temp.ai_addr = NULL;
-    temp.ai_next = NULL;
-
-	int ret = getaddrinfo(NULL, "8080", &temp, &rep);
-	if (ret != 0)
-		std::cout << "Erreur de getaddrinfo" << std::endl;
-	*/
-
+	bzero(&this->sockaddr, sizeof(this->sockaddr));
 	if (this->i < this->serv.size())
 	{
 		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
+		std::cout << "resultat de inet_addr : " << inet_addr(this->serv[i]->getIp().c_str()) << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		//int temp = atoi(this->serv[i]->getIp().c_str());
 		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
@@ -98,7 +83,6 @@ void Loop::socksetopt(void)
 
 void Loop::socketbind(void)
 {
-	
 	if (bind(this->tab_socket.back(), (struct sockaddr*)&this->sockaddr, sizeof(this->sockaddr)) == -1)
 		throw std::exception(); // temporaire
 }
@@ -111,17 +95,15 @@ void Loop::socketlisten(void)
 
 void Loop::socketaccept(void)
 {
-	struct sockaddr_in client;
-	socklen_t temp = sizeof(client);
-	this->tab_fd.push_back(accept(this->tab_socket.back(), (struct sockaddr*)&client, &temp));
-	if (this->tab_fd.back() == -1)
+	this->tab_fd = accept(this->fd_accept, NULL, NULL);
+	if (this->tab_fd == -1)
 		throw std::exception(); // temporaire
 }
 
 void Loop::readrequete(void)
 {
 	bzero(this->r_buffer, sizeof(this->r_buffer));
-	this->r_octet = recv(this->tab_fd.back(), this->r_buffer, sizeof(this->r_buffer), 0);
+	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -129,7 +111,7 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->r_octet = send(this->tab_fd.back(), this->w_buffer, sizeof(this->w_buffer), 0);
+	this->r_octet = send(this->tab_fd, this->w_buffer, sizeof(this->w_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 }
@@ -138,83 +120,112 @@ void Loop::closesocket(void)
 {
 	size_t i = 0;
 	std::list<int>::iterator it = this->tab_socket.begin();
-	std::list<int>::iterator itt = this->tab_fd.begin();
 	while (i < this->tab_socket.size())
 	{
 		close(*it);
-		close(*itt);
 		it++;
-		itt++;
 		i++;
 	}
+	FD_ZERO(&this->setfd);
+}
+
+int Loop::getlist(int index)
+{
+	std::list<int>::iterator it = this->tab_socket.begin();
+	int i = 0;
+	while (i != index)
+	{
+		*it++;
+		i++;
+	}
+	return (*it);
 }
 
 void	Loop::loop(void)
 {
-	HttpParser request = HttpParser(*(serv[0]));
-	HttpParser response = HttpParser(*(serv[0]));
-	
-	int ret = 0;
-	int temp = 0;
-	fd_set r;
-	fd_set w;
+	HttpParser request;
+	HttpParser response;
 	try
 	{
-		std::cout << "--- loop ---\n";
-		std::cout << this->tab_socket.back() << std::endl;
-		this->createsocket(); // stock ici dans 1 vtableau pour la suite aussi et ensuite check avec select cette plage de fd crée
- 		std::cout << this->tab_socket.back() << std::endl;
-		this->setstruct();
-		this->socksetopt();
-		this->socketbind();
-		this->socketlisten();
-		std::cout << "Une connexion a été établie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+		size_t i = 0;
+		while (i < this->serv.size())
+		{
+			this->createsocket(); // stock ici dans 1 tableau pour la suite aussi et ensuite check avec select cette plage de fd crée
+			this->setstruct();
+			this->socksetopt();
+			this->socketbind();
+			this->socketlisten();
+			i++;
+			std::cout << "Une connexion a ete etablie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+		}
 	}
 	catch (std::exception &tmp)
 	{
 		std::cout << "erreur : loop initialisation\n";
-		ret = 1;
+		return ;
 	}
+	i = 0;
+	int it = 0;
 	FD_ZERO(&this->setfd);
-	FD_SET(this->tab_socket.back(), &this->setfd);
-
+	while (i < this->tab_socket.size())
+	{
+		it = getlist(i);
+		std::cout << "fd_socket : " << i << std::endl;
+		if (it > this->max_fd)
+			this->max_fd = it;
+		FD_SET(it, &this->setfd);
+		i++;
+	}
+	int ret = 0;
 	while (ret != 1)
 	{
-		r = this->setfd;
-		w = this->setfd;
-		temp = select(this->tab_socket.back() + 1, &r, &w, NULL, NULL);
-		if (temp == -1)
+		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &this->timeout);
+		if (this->temp == -1)
 			ret = 1;
-
-		// envoie message (request)
-		if (FD_ISSET(this->tab_socket.back(), &this->setfd))
+		if (this->temp == 0)
 		{
-			socketaccept();
-			readrequete();
-			// print request
-			try {
-				request.parse(r_buffer);
-				std::cout << request << std::endl;
-			} catch (HttpException &e) {
-				std::cout << e.what() << std::endl;
-			}
-			FD_SET(this->tab_fd.back(), &this->setfd);
+			ret = 1;
+			std::cout << "TIMEOUT" << std::endl;
 		}
-
-		// lis message (reponse)
-		if (FD_ISSET(this->tab_fd.back(), &this->setfd))
+		// envoie message (request)
+		i = 1;
+		while (i < (size_t)this->max_fd)
 		{
-			// print response
+			this->fd_accept = getlist(i);
+			if (FD_ISSET(this->fd_accept, &this->temp_fd))
+			{
+				socketaccept();
+				readrequete();
+				// print request
+				try {
+					request.parse(r_buffer);
+					std::cout << request << std::endl;
+				} catch (HttpException &e) {
+					std::cout << e.what() << std::endl;
+				}
+				FD_SET(this->tab_fd, &this->temp_fd);
+				break ;
+			}
+			i++;
+		}
+		// lis message (reponse)
+		if (FD_ISSET(this->tab_fd, &this->temp_fd))
+		{
 			try {
-				response = request;
 				response.buildResponse(serv, request);
 				std::memset(w_buffer, 0, sizeof(w_buffer));
 				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+				std::cout << response << std::endl;
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}
 			sendrequete();
-			close(this->tab_fd.back());
+			this->fd_accept = 0;
+			close(this->fd_accept);
+			close(this->tab_fd);
+			FD_CLR(this->tab_fd, &this->temp_fd);
+			FD_ZERO(&this->temp_fd);
 		}
 	}
 	this->closesocket();
@@ -234,7 +245,7 @@ const struct sockaddr_in Loop::get_sockaddr(void) const
 	return (this->sockaddr);
 }
 
-const std::list<int> Loop::get_fd_socket(void) const
+int Loop::get_fd_socket(void) const
 {
 	return (this->tab_fd);
 }
