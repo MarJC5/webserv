@@ -2,6 +2,7 @@
 // Created by tywael on 12/9/22.
 //
 #include "../inc/Properties.hpp"
+#include <iostream>
 
 Properties::Properties(void): _root(""), _index(""), _max_body_size(1048576), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
 

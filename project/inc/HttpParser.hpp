@@ -18,6 +18,7 @@
 #include <map>
 #include <numeric>
 #include <cstring>
+#include <ctime>
 #include <stdlib.h>
 
 #include "HttpException.hpp"
@@ -28,6 +29,7 @@ class HttpParser
 {
 	public:
 		HttpParser(void);
+        HttpParser(Server &serv);
 		HttpParser(char *buffer);
 		virtual ~HttpParser(void);
 		HttpParser(HttpParser const &src);
@@ -53,6 +55,7 @@ class HttpParser
 		std::string     getStatusCode(void) const;
 		std::string     getStatusMessage(void) const;
 		HttpException   getStatus(void) const;
+        const Location        &getLocation(void) const;
 
 		// URL encoding and decoding
 		static std::string urlEncode(std::string const &str);
@@ -87,6 +90,8 @@ class HttpParser
 		std::string   _statusCode;
 		std::string   _statusMessage;
 		bool		  _isRequest;
+        Server        _serv;
+        Location      _loc;
 		std::map<std::string, std::string> _headers;
 };
 

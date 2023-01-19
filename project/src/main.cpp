@@ -1,4 +1,5 @@
 #include "../inc/webserv.hpp"
+#include "../inc/check_location.hpp"
 
 #include <string.h>
 #include <unistd.h>

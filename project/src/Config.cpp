@@ -16,10 +16,10 @@ std::vector<std::string>::const_iterator getClosingBracket(std::vector<std::stri
             if(count != 1)
                 count--;
             else
-                return (++it);
+                return (it);
         }
     }
-    return (++it);
+    return (it);
 }
 
 Config::Config(void): _server() {}
@@ -55,7 +55,6 @@ void Config::parseConf(std::string fileName)
         if ((pos = findKey(*it, "server")) != std::string::npos)
         {
             numServ++;
-            std::cout << *it << std::endl;
             _server.push_back(new Server());
             if (it->find("{", pos + std::string("server").size()) != std::string::npos)
             {

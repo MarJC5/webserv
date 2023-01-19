@@ -13,7 +13,7 @@ NAME		= webserv
 # FOLDERS & FILES
 SRCS_DIR	= ./src/
 SRCS_FILES	= main.cpp
-SRCS_FILES	+= ConfFile.cpp Config.cpp Server.cpp Properties.cpp Location.cpp parse.cpp Loop.cpp HttpException.cpp HttpParser.cpp
+SRCS_FILES	+= ConfFile.cpp Config.cpp Server.cpp Properties.cpp Location.cpp parse.cpp Loop.cpp HttpException.cpp HttpParser.cpp check_location.cpp
 SRCS		:= ${patsubst %, ${SRCS_DIR}%, ${SRCS_FILES}}
 
 O_DIR		= ./objs/
