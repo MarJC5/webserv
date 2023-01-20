@@ -12,10 +12,34 @@ std::vector<std::string> readFile(std::string fileName) {
 	std::ifstream file;
 	std::vector<std::string> _lines;
 
-	file.open(fileName.c_str());
-	while (std::getline(file, line))
-		_lines.push_back(line);
-	file.close();
+	file.open(fileName.c_str(), std::ios::in | std::ios::binary);
+
+	if (file.is_open()) {
+		// check if file is text or binary
+		bool isTextFile = true;
+		char c;
+		while (file.get(c)) {
+			if (!isprint((int)c) && !isspace((int)c)) {
+				isTextFile = false;
+				break;
+			}
+		}
+		file.clear();
+		file.seekg(0, std::ios::beg);
+		if (isTextFile) {
+			while (std::getline(file, line)) {
+				_lines.push_back(line);
+			}
+		} else {
+			std::istreambuf_iterator<char> it(file.rdbuf());
+			std::istreambuf_iterator<char> eos;
+			std::string str(it, eos);
+			_lines.push_back(str);
+		}
+		file.close();
+	} else {
+		std::cout << "Unable to open file" << std::endl;
+	}
 	return _lines;
 }
 

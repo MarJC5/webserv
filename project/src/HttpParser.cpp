@@ -1,5 +1,6 @@
 #include "../inc/HttpParser.hpp"
 #include "../inc/check_location.hpp"
+#include "../inc/parse.h"
 
 /**
  * Method: HttpParser::consutrctor
@@ -404,13 +405,7 @@ void HttpParser::buildResponse(void)
 	this->_headers["Date"] = buf;
 
 	// Content-Type
-	if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "gif") {
-		this->_headers["Content-type"] = "image/" + fileExtension;
-	} else if (fileExtension == "pdf") {
-		this->_headers["Content-type"] = "application/" + fileExtension;
-	} else {
-		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
-	}
+	this->_headers["Content-type"] = accept.substr(0, accept.find(','));
 
 	// Content-Length (file size)
 	int contentLength = 0;
@@ -434,11 +429,12 @@ void HttpParser::buildResponse(void)
 	if (!_body.empty())
 		this->_body.clear();
 
-	for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end(); ++it)
-	{
-		ossb << (*it) << "\r\n";
-	}
+	// upload file
+	if (this->getMethod() == "POST")
+		this->uploadFile();
 
+	for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end(); ++it)
+		ossb << (*it) << "\r\n";
 	this->_body = ossb.str();
 
 	this->_isRequest = false;
