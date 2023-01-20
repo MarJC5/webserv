@@ -67,11 +67,11 @@ void Loop::setstruct(void)
 		std::string c = "\033[1;34m";
 		std::string nc = "\033[0m";
 
-		std::cout <<  std::endl;
-		std::cout << c << "Server name: " << nc << this->serv[i]->getName() << std::endl;
+		std::cout << c << "Server is running..." << nc << std::endl;
 		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
+		std::cout << c << std::left << std::setw(18) << "Name" << nc << ": "  << this->serv[i]->getName() << std::endl;
 		std::cout << c << std::left << std::setw(18) << "Host" << nc << ": " << this->serv[i]->getIp().c_str() << ":" << this->serv[i]->getPort() << std::endl;
-		std::cout << c << std::left << std::setw(18) << "inet_addr" << nc << ": " << inet_addr(this->serv[i]->getIp().c_str())  << std::endl;
+		std::cout << c << std::left << std::setw(18) << "inet_addr" << nc << ": " << inet_addr(this->serv[i]->getIp().c_str()) << std::endl;
 		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;

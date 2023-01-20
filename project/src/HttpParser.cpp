@@ -387,10 +387,16 @@ void HttpParser::postMethod(std::vector<std::string> data) {
 	if (data[0].find("Error: Could not open file") != std::string::npos) {
 		_status << "404";
 	} else {
-		_status << "200";
+		_status << "303";
 		// Content-Type
 		accept = this->getHeaders().find("Accept")->second;
 		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
+
+		// Upload file to server and redirect to GET method to show it in browser (303)
+		if (this->_file.find("upload") != std::string::npos) {
+			this->_headers["Content-Disposition"] = "form-data; name=\"file\"; filename=\"" + this->_file + "\"";
+			this->_headers["Content-Transfer-Encoding"] = "binary";
+		}
 	}
 }
 
@@ -437,6 +443,9 @@ void HttpParser::buildResponse(void)
 		std::string error = this->_statusCode + " " + this->_statusMessage + "\r\n";
 		lines.clear();
 		lines.push_back(error);
+		// Redirect to error page
+		this->_file = "/status/" + this->_statusCode + ".html";
+		lines = readFile(this->getLocation().getRoot() + this->getFile());
 	}
 
 	// Date
@@ -452,8 +461,11 @@ void HttpParser::buildResponse(void)
 	     << "Connection: " << this->_headers["Connection"] << "\r\n"
 	     << "Date: " << this->_headers["Date"] << "\r\n";
 
-	if (this->getMethod() == "POST")
+	if (this->getMethod() == "POST") {
 		ossBody << "Host: " << this->_headers["Host"] << "\r\n";
+		ossBody << "Content-Disposition: " << this->_headers["Content-Disposition"] << "\r\n";
+		ossBody << "Content-Transfer-Encoding: " << this->_headers["Content-Transfer-Encoding"] << "\r\n";
+	}
 
 	ossBody << "\n";
 
@@ -472,6 +484,8 @@ void HttpParser::buildResponse(void)
 
 	this->_isRequest = false;
 	std::cout << *this << std::endl;
+
+	// TODO: Redirect to the page if POST method
 }
 
 /**
