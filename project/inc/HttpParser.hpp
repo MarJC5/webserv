@@ -79,6 +79,12 @@ class HttpParser
 
 		// Build the HTTP response message with HttpParser instance variables.
 		void buildResponse(void);
+		void buildPost(void);
+		void buildGet(void);
+		void buildDelete(void);
+
+		// Upload file
+		void uploadFile(void);
 
 		// Methods
 		void showHeaders(void) const;

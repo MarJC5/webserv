@@ -368,9 +368,19 @@ void HttpParser::showHeaders(void) const
  * Description: Build a response from the HTTP message.
  */
 
+void HttpParser::uploadFile(void) {
+	std::string path = _loc.getRoot() + _file;
+	std::ofstream file(path.c_str(), std::ios::out | std::ios::trunc);
+	if (file)
+	{
+		file << _body;
+		file.close();
+	}
+}
+
 void HttpParser::buildResponse(void)
 {
-	std::map<std::string, Location *> locations;
+	std::string fileExtension = _file.substr(_file.rfind('.') + 1, std::string::npos);
 	std::vector<std::string> lines;
 	std::string accept;
 
@@ -385,9 +395,6 @@ void HttpParser::buildResponse(void)
 	this->_statusCode = _status.getStatusCode();
 	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
 
-	// Content-Type
-	this->_headers["Content-type"] = accept.substr(0, accept.find(','));
-
 	// RFC 1123 (HTTP date format)
 	time_t now = time(0);
 	struct tm tstruct;
@@ -396,6 +403,15 @@ void HttpParser::buildResponse(void)
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &tstruct);
 	this->_headers["Date"] = buf;
 
+	// Content-Type
+	if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "gif") {
+		this->_headers["Content-type"] = "image/" + fileExtension;
+	} else if (fileExtension == "pdf") {
+		this->_headers["Content-type"] = "application/" + fileExtension;
+	} else {
+		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
+	}
+
 	// Content-Length (file size)
 	int contentLength = 0;
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
@@ -403,6 +419,14 @@ void HttpParser::buildResponse(void)
 		contentLength += (*it).size();
 	}
 	std::ostringstream oss;
+
+	std::ostringstream ossb;
+	ossb << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+	     << "Content-type: " << this->_headers["Content-type"] << "\r\n"
+	     << "Connection: " << this->_headers["Connection"] << "\r\n"
+	     << "Date: " << this->_headers["Date"] << "\r\n\n";
+
+	contentLength += ossb.str().size();
 	oss << contentLength;
 	this->_headers["Content-Length"] = oss.str();
 
@@ -410,18 +434,13 @@ void HttpParser::buildResponse(void)
 	if (!_body.empty())
 		this->_body.clear();
 
-	std::ostringstream ossb;
-	ossb << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
-		 << "Content-type: " << this->_headers["Content-type"] << "\r\n"
-		 << "Date: " << this->_headers["Date"] << "\r\n"
-		 << "Connection: " << this->_headers["Connection"] << "\r\n"
-		 << "Content-Length: " << this->_headers["Content-Length"] << "\r\n\r\n";
-
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end(); ++it)
 	{
 		ossb << (*it) << "\r\n";
 	}
+
 	this->_body = ossb.str();
+
 	this->_isRequest = false;
 	std::cout << *this << std::endl;
 }
@@ -438,7 +457,7 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i)
 	if (i.parsType())
 	{
 		o << "Request" << std::endl;
-		o << i.getMethod() << " " << i.getUri() << " " << i.getHttpVersion() << std::endl;
+		o << i.getMethod() << " " << i.getFile() << " " << i.getHttpVersion() << std::endl;
 		o << "----------------" << std::endl;
 	}
 	else

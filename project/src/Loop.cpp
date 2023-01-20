@@ -111,9 +111,14 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->r_octet = send(this->tab_fd, this->w_buffer, sizeof(this->w_buffer), 0);
-	if (this->r_octet == -1)
-		throw std::exception(); // temporaire
+	this->r_octet = sizeof(this->w_buffer);
+	while (this->r_octet > 0) {
+		int sent_data = send(this->tab_fd, this->w_buffer, this->r_octet, 0);
+		if (sent_data < 0) {
+			throw std::exception(); // handle error
+		}
+		this->r_octet -= sent_data;
+	}
 }
 
 void Loop::closesocket(void)
