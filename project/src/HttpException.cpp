@@ -177,6 +177,8 @@ void HttpException::_initDefault(void) {
 				size_t end = line.find_first_of(" \t\r\n", line.find("HTTP_") + 5);
 				msg = line.substr(line.find("HTTP_") + 5, end - line.find("HTTP_") - 5);
 				code = line.substr(end + 1, line.find_first_of(" \t\r\n", end + 1) - end - 1);
+				// replace all _ with space
+				std::replace(msg.begin(), msg.end(), '_', ' ');
 				_status[code] = msg;
 			}
 		}

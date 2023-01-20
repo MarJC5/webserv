@@ -1,6 +1,14 @@
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
+#ifndef VERBOSE
+	// Add verbose flag at compile time
+	// 0 = no verbose
+	// 1 = verbose
+	// 2 = verbose + debug
+	#define VERBOSE 0
+#endif
+
 #include <iostream>
 #include "Loop.hpp"
 #include "Server.hpp"

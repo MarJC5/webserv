@@ -1,6 +1,5 @@
 #include "../inc/HttpParser.hpp"
 #include "../inc/check_location.hpp"
-#include "../inc/parse.h"
 
 /**
  * Method: HttpParser::consutrctor
@@ -369,73 +368,107 @@ void HttpParser::showHeaders(void) const
  * Description: Build a response from the HTTP message.
  */
 
-void HttpParser::uploadFile(void) {
-	std::string path = _loc.getRoot() + _file;
-	std::ofstream file(path.c_str(), std::ios::out | std::ios::trunc);
-	if (file)
-	{
-		file << _body;
-		file.close();
+void HttpParser::getMethod(std::vector<std::string> data) {
+	std::string accept;
+
+	if (data[0].find("Error: Could not open file") != std::string::npos) {
+		_status << "404";
+	} else {
+		_status << "200";
+		// Content-Type
+		accept = this->getHeaders().find("Accept")->second;
+		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
+	}
+}
+
+void HttpParser::postMethod(std::vector<std::string> data) {
+	std::string accept;
+
+	if (data[0].find("Error: Could not open file") != std::string::npos) {
+		_status << "404";
+	} else {
+		_status << "200";
+		// Content-Type
+		accept = this->getHeaders().find("Accept")->second;
+		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
+	}
+}
+
+void HttpParser::deleteMethod(std::vector<std::string> data) {
+	std::string accept;
+
+	if (data[0].find("Error: Could not open file") != std::string::npos) {
+		_status << "404";
+	} else {
+		_status << "200";
+		// Content-Type
+		accept = this->getHeaders().find("Accept")->second;
+		this->_headers["Content-type"] = accept.substr(0, accept.find(','));
 	}
 }
 
 void HttpParser::buildResponse(void)
 {
-	std::string fileExtension = _file.substr(_file.rfind('.') + 1, std::string::npos);
-	std::vector<std::string> lines;
-	std::string accept;
+	std::vector<std::string>    lines;
+	std::ostringstream          ossHeader;
+	std::ostringstream          ossBody;
+	int contentLength           = 0;
+	time_t now                  = time(0);
+	struct tm timeStruct        = *gmtime(&now);
+	char buf[80];
 
-	std::cout << "request path: " << (this->getLocation().getRoot()) << this->getFile() << std::endl;
 	lines = readFile(this->getLocation().getRoot() + this->getFile());
 
-	if (!accept.empty())
-		accept.clear();
-	accept = this->getHeaders().find("Accept")->second;
+	// Method & Status
+	if (this->getMethod() == "GET") {
+		getMethod(lines);
+	} else if (this->getMethod() == "POST") {
+		postMethod(lines);
+	} else if (this->getMethod() == "DELETE") {
+		deleteMethod(lines);
+	} else {
+		_status << "501";
+	}
 
-	_status << "200";
 	this->_statusCode = _status.getStatusCode();
 	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
 
-	// RFC 1123 (HTTP date format)
-	time_t now = time(0);
-	struct tm tstruct;
-	char buf[80];
-	tstruct = *gmtime(&now);
-	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &tstruct);
+	if (this->_statusCode != "200") {
+		std::string error = this->_statusCode + " " + this->_statusMessage + "\r\n";
+		lines.clear();
+		lines.push_back(error);
+	}
+
+	// Date
+	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &timeStruct);
 	this->_headers["Date"] = buf;
 
-	// Content-Type
-	this->_headers["Content-type"] = accept.substr(0, accept.find(','));
-
-	// Content-Length (file size)
-	int contentLength = 0;
+	// Headers
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
-	{
 		contentLength += (*it).size();
-	}
-	std::ostringstream oss;
 
-	std::ostringstream ossb;
-	ossb << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+	ossBody << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
 	     << "Content-type: " << this->_headers["Content-type"] << "\r\n"
 	     << "Connection: " << this->_headers["Connection"] << "\r\n"
-	     << "Date: " << this->_headers["Date"] << "\r\n\n";
+	     << "Date: " << this->_headers["Date"] << "\r\n";
 
-	contentLength += ossb.str().size();
-	oss << contentLength;
-	this->_headers["Content-Length"] = oss.str();
+	if (this->getMethod() == "POST")
+		ossBody << "Host: " << this->_headers["Host"] << "\r\n";
+
+	ossBody << "\n";
+
+	contentLength += ossBody.str().size();
+	ossHeader << contentLength;
+
+	this->_headers["Content-Length"] = ossBody.str();
 
 	// Body
-	if (!_body.empty())
-		this->_body.clear();
-
-	// upload file
-	if (this->getMethod() == "POST")
-		this->uploadFile();
+	this->_body.clear();
 
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it < lines.end(); ++it)
-		ossb << (*it) << "\r\n";
-	this->_body = ossb.str();
+		ossBody << (*it) << "\r\n";
+
+	this->_body = ossBody.str();
 
 	this->_isRequest = false;
 	std::cout << *this << std::endl;
@@ -454,13 +487,13 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i)
 	{
 		o << "Request" << std::endl;
 		o << i.getMethod() << " " << i.getFile() << " " << i.getHttpVersion() << std::endl;
-		o << "----------------" << std::endl;
+		o << "----------------------------------------------------------------" << std::endl;
 	}
 	else
 	{
 		o << "Response" << std::endl;
 		o << i.getHttpVersion() << " " << i.getStatusCode() << " " << i.getStatusMessage() << std::endl;
-		o << "----------------" << std::endl;
+		o << "----------------------------------------------------------------" << std::endl;
 	}
 
 	if (!i.getMethod().empty())
@@ -475,9 +508,12 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i)
 		o << c << std::left << std::setw(18) << "Port" << nc << ": " << i.getPort() << std::endl;
 	if (!i.getStatusCode().empty())
 		o << c << std::left << std::setw(18) << "Status" << nc << ": " << i.getStatus() << std::endl;
-	i.showHeaders();
-	if (!i.getBody().empty())
-		o << c << std::left << std::setw(18) << "\nBody" << nc << "\n"
-		  << i.getBody() << std::endl;
+	if (VERBOSE >= 1)
+		i.showHeaders();
+	if (VERBOSE >= 2) {
+		if (!i.getBody().empty())
+			o << c << std::left << std::setw(18) << "\nBody" << nc << "\n"
+			  << i.getBody() << std::endl;
+	}
 	return (o);
 }

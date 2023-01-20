@@ -38,7 +38,7 @@ std::vector<std::string> readFile(std::string fileName) {
 		}
 		file.close();
 	} else {
-		std::cout << "Unable to open file" << std::endl;
+		_lines.push_back("Error: Could not open file");
 	}
 	return _lines;
 }

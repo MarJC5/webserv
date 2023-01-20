@@ -24,6 +24,7 @@
 #include "HttpException.hpp"
 #include "Server.hpp"
 #include "parse.h"
+#include "webserv.hpp"
 
 class HttpParser
 {
@@ -79,9 +80,9 @@ class HttpParser
 
 		// Build the HTTP response message with HttpParser instance variables.
 		void buildResponse(void);
-		void buildPost(void);
-		void buildGet(void);
-		void buildDelete(void);
+		void postMethod(std::vector<std::string> data);
+		void getMethod(std::vector<std::string> data);
+		void deleteMethod(std::vector<std::string> data);
 
 		// Upload file
 		void uploadFile(void);

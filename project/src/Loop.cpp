@@ -64,8 +64,15 @@ void Loop::setstruct(void)
 	bzero(&this->sockaddr, sizeof(this->sockaddr));
 	if (this->i < this->serv.size())
 	{
-		std::cout << this->serv[i]->getPort() << " " << this->serv[i]->getIp().c_str() << std::endl;
-		std::cout << "resultat de inet_addr : " << inet_addr(this->serv[i]->getIp().c_str()) << std::endl;
+		std::string c = "\033[1;34m";
+		std::string nc = "\033[0m";
+
+		std::cout <<  std::endl;
+		std::cout << c << "Server name: " << nc << this->serv[i]->getName() << std::endl;
+		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
+		std::cout << c << std::left << std::setw(18) << "Host" << nc << ": " << this->serv[i]->getIp().c_str() << ":" << this->serv[i]->getPort() << std::endl;
+		std::cout << c << std::left << std::setw(18) << "inet_addr" << nc << ": " << inet_addr(this->serv[i]->getIp().c_str())  << std::endl;
+		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
 		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
@@ -150,6 +157,10 @@ void	Loop::loop(void)
 {
 	HttpParser request;
 	HttpParser response;
+
+	std::string c = "\033[1;32m";
+	std::string nc = "\033[0m";
+
 	try
 	{
 		size_t i = 0;
@@ -161,7 +172,12 @@ void	Loop::loop(void)
 			this->socketbind();
 			this->socketlisten();
 			i++;
-			std::cout << "Une connexion a ete etablie avec \nPort : " << ntohs(this->sockaddr.sin_port) << "\nIP : " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+			std::cout << c << std::endl;
+			std::cout << "New connexion" << std::endl;
+			std::cout << "----------------------------------------------------------------" << nc << std::endl;
+			std::cout << c << std::left << std::setw(18) << "Port" << nc << ": " << ntohs(this->sockaddr.sin_port) << std::endl;
+			std::cout << c << std::left << std::setw(18) << "IP" << nc << ": " << ntohl(this->sockaddr.sin_addr.s_addr) << std::endl;
+			std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		}
 	}
 	catch (std::exception &tmp)
@@ -175,7 +191,7 @@ void	Loop::loop(void)
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
-		std::cout << "fd_socket : " << i << std::endl;
+		//std::cout << "fd_socket : " << i << std::endl;
 		if (it > this->max_fd)
 			this->max_fd = it;
 		FD_SET(it, &this->setfd);
