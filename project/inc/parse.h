@@ -12,4 +12,7 @@ std::string getVal(std::string line, std::string attrib, size_t pos);
 std::vector<std::string> split(std::string line, std::string sep);
 std::vector<std::string> readFile(std::string fileName);
 
+bool hasSuffix(const std::string &str, const std::string &suffix);
+std::vector<std::string> spliter(const std::string& s, const std::string& delimiter);
+
 #endif //WEBSERV_PARSE_H

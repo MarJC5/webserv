@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <numeric>
 #include <cstring>
 #include <ctime>
@@ -77,15 +78,13 @@ class HttpParser
 		void setHttpVersion(std::string httpVersion);
 		void setHeader(std::string header, std::string value);
 		void setBody(std::string body);
+		void setContentType(std::string fileExt, std::string accept);
 
 		// Build the HTTP response message with HttpParser instance variables.
 		void buildResponse(void);
-		void postMethod(std::vector<std::string> data);
+		void deleteMethod(void);
 		void getMethod(std::vector<std::string> data);
-		void deleteMethod(std::vector<std::string> data);
-
-		// Upload file
-		void uploadFile(void);
+		bool postMethod(void);
 
 		// Methods
 		void showHeaders(void) const;

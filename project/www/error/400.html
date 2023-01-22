@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Webserv - Error 501</title>
+  <title>Webserv - Error 400</title>
   <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-16x16.png">
@@ -13,20 +13,26 @@
   <link rel="stylesheet" href="/src/stylesheets/main.css" />
 </head>
 
-<body>
+<body class="error-page">
 
 <header>
-  <div class="container">
+  <div class="container grid">
     <h1 class="uppercase">
-      <a href="../index.html">Webserv - Error 501</a>
+      <a href="../index.html" class="orange">Webserv - Error 400</a>
     </h1>
+    <ul class="ul-inline">
+      <li><a href="/methods/get.html">Get</a></li>
+      <li><a href="/methods/post.html">Post</a></li>
+      <li><a href="/methods/delete.html">Delete</a></li>
+    </ul>
   </div>
 </header>
 
 <main>
   <section class="container">
-    <h2>501 - Not Implemented</h2>
-    <p>The server does not support the functionality required to fulfill the request.</p>
+    <h2>Error 400</h2>
+    <p>Bad Request</p>
+    <p>The server cannot or will not process the request due to an apparent client error (e.g., malformed request syntax, size too large, invalid request message framing, or deceptive request routing).</p>
   </section>
 </main>
 

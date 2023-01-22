@@ -106,3 +106,20 @@ std::vector<std::string> split(std::string line, std::string sep)
     ret.erase(ret.begin());
     return (ret);
 }
+
+std::vector<std::string> spliter(const std::string& s, const std::string& delimiter) {
+	std::vector<std::string> parts;
+	std::string::size_type start = 0;
+	std::string::size_type end = s.find(delimiter);
+	while (end != std::string::npos) {
+		parts.push_back(s.substr(start, end - start));
+		start = end + delimiter.length();
+		end = s.find(delimiter, start);
+	}
+	parts.push_back(s.substr(start));
+	return parts;
+}
+
+bool hasSuffix(const std::string &str, const std::string &suffix) {
+	return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
