@@ -4,7 +4,7 @@
 #include "../inc/Properties.hpp"
 #include <iostream>
 
-Properties::Properties(void): _root(""), _index(""), _max_body_size(1048576), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
+Properties::Properties(void): _root(""), _index(), _max_body_size(1048576), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
 
 Properties::Properties(const Properties &copy)
 {
@@ -34,7 +34,7 @@ std::string const &Properties::getRoot(void) const
     return (_root);
 }
 
-std::string const &Properties::getIndex(void) const
+std::vector<std::string> const &Properties::getIndex(void) const
 {
     return (_index);
 }
@@ -103,7 +103,7 @@ bool Properties::parseIndex(std::string line) {
     size_t pos;
 
     if ((pos = findKey(line, "index ")) != std::string::npos) {
-        _index = getVal(line, "index", pos);
+        _index = split(line, " ");
         return (true);
     }
     return (false);

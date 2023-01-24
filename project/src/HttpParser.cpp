@@ -1,5 +1,5 @@
 #include "../inc/HttpParser.hpp"
-#include "../inc/check_location.hpp"
+#include "../inc/checkLocation.hpp"
 
 /**
  * Method: HttpParser::consutrctor
@@ -388,7 +388,6 @@ void HttpParser::showHeaders(void) const
  */
 
 void HttpParser::getMethod(std::vector<std::string> data) {
-
 	if (data[0].find("Error: Could not open file") != std::string::npos) {
 		_status << "404";
 	} else {
@@ -470,9 +469,12 @@ void HttpParser::buildResponse(void)
 	struct tm timeStruct        = *gmtime(&now);
 	char buf[80];
 
-	lines = readFile(this->getLocation().getRoot() + this->getFile());
-
-	// Method & Status
+    if (!this->getFile().empty()) {
+        lines = readFile(this->getLocation().getRoot() + this->getFile());
+    } else {
+        lines = readIndex(this->getLocation());
+    }
+    // Method & Status
 	if (this->getMethod() == "GET") {
 		getMethod(lines);
 	} else if (this->getMethod() == "POST") {
