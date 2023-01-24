@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <title>Webserv - POST</title>
+    <title>Webserv - Submition succeed</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/public/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-16x16.png">
@@ -13,12 +13,12 @@
     <link rel="stylesheet" href="/src/stylesheets/main.css">
 </head>
 
-<body class="post-page">
+<body class="success-page">
 
 <header>
     <div class="container grid">
         <h1 class="uppercase">
-            <a href="/index.html">Webserv - POST</a>
+            <a href="/index.html">Webserv - Success</a>
         </h1>
         <ul class="ul-inline">
             <li><a href="/methods/get.html">Get</a></li>
@@ -29,17 +29,10 @@
 </header>
 
 <main>
-    <div class="container">
-        <h2>POST - Upload</h2>
-        <p>Envoi de fichier sur le serveur.</p>
-        <form action="/uploads/upload.html" method="POST" enctype="multipart/form-data">
-            <div class="form-fields">
-                <label for="file">Upload: </label>
-                <input type="file" name="file" id="file"/>
-            </div>
-            <input type="submit" class="btn btn--success" value="Envoyer" />
-        </form>
-    </div>
+    <section class="container">
+        <h2>Submition succeed</h2>
+        <p>File uploaded successfully.</p>
+    </section>
 </main>
 
 <footer>

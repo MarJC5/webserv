@@ -442,14 +442,11 @@ bool HttpParser::postMethod(void) {
 		}
 		std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
 		// Save the file in the server
-		std::ofstream file("./www/uploads/" + filename, std::ios::binary);
+		std::ofstream file(getLocation().getRoot() + _file, std::ios::binary);
 		if (file.is_open()) {
 			file.write(fileContent.c_str(), fileContent.size());
 			file.close();
 			_status << "201";
-			_uri = "/uploads/";
-			_file = filename;
-			_loc = check_location(_serv.getLocations(), _uri, _file);
 		} else {
 			_status << "500";
 			return false;
