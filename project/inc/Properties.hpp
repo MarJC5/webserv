@@ -19,7 +19,7 @@ class Properties
         Properties &operator=(Properties const &right);
 
         std::string const &getRoot(void) const;
-        std::string const &getIndex(void) const;
+        std::vector<std::string> const &getIndex(void) const;
         std::string const &getCgiBin(void) const;
         std::string const &getUploadDir(void) const;
         int const &getMaxBody(void) const;
@@ -39,7 +39,7 @@ class Properties
 
 protected:
         std::string             _root;
-        std::string             _index;
+        std::vector<std::string> _index;
         int                     _max_body_size;
         std::vector<std::string> _allowed_method;
         std::string             _cgi_bin;

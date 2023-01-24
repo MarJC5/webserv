@@ -6,5 +6,6 @@
 #define WEBSERV_CHECK_LOCATION_HPP
 
 Location &check_location(const std::map<std::string, Location*> &locations, std::string uri, std::string &file);
+std::vector<std::string> readIndex(const Location &loc);
 
 #endif //WEBSERV_CHECK_LOCATION_HPP
