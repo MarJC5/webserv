@@ -215,12 +215,8 @@ void	Loop::loop(void)
 				readrequete();
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
-				try {
-					request.parse(r_buffer);
-					std::cout << request << std::endl;
-				} catch (HttpException &e) {
-					std::cout << e.what() << std::endl;
-				}
+                request.parse(r_buffer);
+                std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
 				break ;
 			}
@@ -229,14 +225,10 @@ void	Loop::loop(void)
 		// lis message (reponse)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
-			try {
-				response = request;
-				response.buildResponse();
-				std::memset(w_buffer, 0, sizeof(w_buffer));
-				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-			} catch (HttpException &e) {
-				std::cout << e.what() << std::endl;
-			}
+            response = request;
+            response.buildResponse();
+            std::memset(w_buffer, 0, sizeof(w_buffer));
+            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "../inc/HttpException.hpp"
 
 std::vector<std::string> readFile(std::string fileName) {
 	std::string line;
@@ -37,9 +38,9 @@ std::vector<std::string> readFile(std::string fileName) {
 			_lines.push_back(str);
 		}
 		file.close();
-	} else {
-		_lines.push_back("Error: Could not open file");
-	}
+	} else if (errno) {
+        catchErrno();
+    }
 	return _lines;
 }
 
@@ -85,7 +86,6 @@ std::string cut_word(std::string &line, size_t pos)
 
     temp = line.substr(0, pos);
     line.erase(0, temp.size());
-    std::cout << temp << " " << temp.back() << std::endl;
     if (temp.back() == ';')
         temp.erase(temp.size() -1, 1);
     return (temp);
