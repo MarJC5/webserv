@@ -415,17 +415,20 @@ bool HttpParser::postMethod(void) {
 		return false;
 	}
 	// does it->second contain "multipart/form-data"?
+    std::cout << _headers["Content-Type"] << std::endl;
 	if (_headers["Content-Type"].find("multipart/form-data") == std::string::npos) {
 		_status << "415";
 		return false;
 	}
 	std::string boundary = _headers["Content-Type"].substr(30);
+    boundary.erase(0,boundary.find_first_not_of('-'));
+    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos);
 	std::vector<std::string> parts = spliter(_body, boundary);
 	if (parts.size() < 2) {
 		_status << "400";
 		return false;
 	}
-	for (unsigned int i = 0; i < parts.size(); i++) {
+    for (unsigned int i = 1; i < parts.size(); i++) {
 		std::string part = parts[i];
 		if (part.empty() || !hasSuffix(part, "\r\n")) {
 			continue;
@@ -433,17 +436,22 @@ bool HttpParser::postMethod(void) {
 		// Find "Content-Disposition: form-data; name="file"; filename="filename.ext""
 		std::string::size_type pos = part.find("Content-Disposition: form-data; name=\"file\"; filename=\"");
 		if (pos == std::string::npos) {
-			continue;
+			_status << "400";
 		}
-		std::string filename = part.substr(pos + 55, part.find("\"", pos + 55) - pos - 55);
-		// Find the file content
+        int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
+		std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
+
+        pos = part.find("Content-Type: ");
+        n = std::string("Content-Type: ").size();
+        _headers["Content-Type"] = part.substr(pos + n, part.find("\r\n", pos + n) - pos - n);
+        // Find the file content
 		pos = part.find("\r\n\r\n");
 		if (pos == std::string::npos) {
-			continue;
+            _status << "400";
 		}
 		std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
 		// Save the file in the server
-		std::ofstream file(getLocation().getRoot() + _file, std::ios::binary);
+		std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
 		if (file.is_open()) {
 			file.write(fileContent.c_str(), fileContent.size());
 			file.close();
@@ -465,30 +473,38 @@ void HttpParser::buildResponse(void) {
     time_t now = time(0);
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
-
-    try {
-        if (!this->getFile().empty()) {
-            lines = readFile(this->getLocation().getRoot() + this->getFile());
-        } else if (this->getLocation().getIndex().size() != 0) {
-            lines = readIndex(this->getLocation());
+    if (getMethod() == "GET") {
+        std::cout << this->_headers["Content-Type"] << std::endl;
+        try {
+            if (!this->getFile().empty()) {
+                lines = readFile(this->getLocation().getRoot() + this->getFile());
+            } else if (this->getLocation().getIndex().size() != 0) {
+                this->_headers["Content-Type"] = "text/html";
+                lines = readIndex(this->getLocation());
+            }
+            if (lines.size() == 0 && this->getLocation().getDirListing()) {
+                lines = dirListing(_file, this->getLocation().getRoot() + _file);
+                this->_headers["Content-Type"] = "text/html";
+            }
+            if (lines.empty())
+                catchErrno();
+            _status << "200";
         }
-        if (lines.size() == 0 && this->getLocation().getDirListing()) {
-            lines = dirListing(_file, this->getLocation().getRoot() + _file);
-            this->_headers["Content-Type"] = "text/html";
+        catch (HttpException::exception &e) {
+            //this->_headers["Content-Type"] = "text/html";
+            _status << e.what();
         }
-        if (lines.empty())
-            catchErrno();
-        _status << "200";
     }
-    catch (HttpException::exception &e)
-    {
-        this->_headers["Content-Type"] = "text/html";
-        _status << e.what();
-    }
-
 
     // Method & Status
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
+
+    if (this->getMethod() == "POST") {
+        postMethod();
+    } else if (this->getMethod() == "DELETE") {
+        deleteMethod();
+    }
+
 	this->_statusCode = _status.getStatusCode();
 	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
 
@@ -547,7 +563,6 @@ void HttpParser::buildResponse(void) {
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
-		_headers["Content-Type"] = "text/html";
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
 	}
