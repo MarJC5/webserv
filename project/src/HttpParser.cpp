@@ -124,22 +124,22 @@ void HttpParser::setServ(const Server &serv)
 }
 
 void HttpParser::setContentType(std::string fileExt, std::string accept) {
-	std::string contentType = "application/octet-stream"; // default content type
+    std::string contentType = "application/octet-stream"; // default content type
 
-	for (std::string::size_type i = 0; i < fileExt.length(); ++i)
-		fileExt[i] = std::tolower(fileExt[i]);
+    for (std::string::size_type i = 0; i < fileExt.length(); ++i)
+        fileExt[i] = std::tolower(fileExt[i]);
 
-	if (fileExt == "png" || fileExt == "jpg" || fileExt == "jpeg" || fileExt == "gif" || fileExt == "bmp" || fileExt == "tiff" || fileExt == "tif" || fileExt == "svg" || fileExt == "svgz") {
-		contentType = "image/" + fileExt;
-	} else if (fileExt == "avi" || fileExt == "mpg" || fileExt == "mpeg" || fileExt == "mp4" || fileExt == "mov" || fileExt == "wmv" || fileExt == "mkv" || fileExt == "webm" || fileExt == "ogv" || fileExt == "flv") {
-		contentType = "video/" + fileExt;
-	} else if (fileExt == "mp3" || fileExt == "wav" || fileExt == "ogg" || fileExt == "flac" || fileExt == "aac" || fileExt == "wma" || fileExt == "m4a" || fileExt == "mid" || fileExt == "midi") {
-		contentType = "audio/" + fileExt;
-	} else if (accept.size() > 0) {
-		contentType = accept.substr(0, accept.find(','));
-	}
-	if (this->getHeaders().find("Content-Type")->second.size() == 0)
-		_headers["Content-Type"] = contentType;
+    if (fileExt == "png" || fileExt == "jpg" || fileExt == "jpeg" || fileExt == "gif" || fileExt == "bmp" || fileExt == "tiff" || fileExt == "tif" || fileExt == "svg" || fileExt == "svgz") {
+        contentType = "image/" + fileExt;
+    } else if (fileExt == "avi" || fileExt == "mpg" || fileExt == "mpeg" || fileExt == "mp4" || fileExt == "mov" || fileExt == "wmv" || fileExt == "mkv" || fileExt == "webm" || fileExt == "ogv" || fileExt == "flv") {
+        contentType = "video/" + fileExt;
+    } else if (fileExt == "mp3" || fileExt == "wav" || fileExt == "ogg" || fileExt == "flac" || fileExt == "aac" || fileExt == "wma" || fileExt == "m4a" || fileExt == "mid" || fileExt == "midi") {
+        contentType = "audio/" + fileExt;
+    } else if (accept.size() > 0) {
+        contentType = accept.substr(0, accept.find(','));
+    }
+    if (this->getHeaders().find("Content-Type")->second.size())
+        _headers["Content-Type"] = contentType;
 }
 
 /**
@@ -415,7 +415,6 @@ bool HttpParser::postMethod(void) {
 		return false;
 	}
 	// does it->second contain "multipart/form-data"?
-    std::cout << _headers["Content-Type"] << std::endl;
 	if (_headers["Content-Type"].find("multipart/form-data") == std::string::npos) {
 		_status << "415";
 		return false;
@@ -441,9 +440,9 @@ bool HttpParser::postMethod(void) {
         int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
 		std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
 
-        pos = part.find("Content-Type: ");
-        n = std::string("Content-Type: ").size();
-        _headers["Content-Type"] = part.substr(pos + n, part.find("\r\n", pos + n) - pos - n);
+//        pos = part.find("Content-Type: ");
+//        n = std::string("Content-Type: ").size();
+//        _headers["Content-Type"] = part.substr(pos + n, part.find("\r\n", pos + n) - pos - n);
         // Find the file content
 		pos = part.find("\r\n\r\n");
 		if (pos == std::string::npos) {
@@ -473,31 +472,28 @@ void HttpParser::buildResponse(void) {
     time_t now = time(0);
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
+
+    this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     if (getMethod() == "GET") {
-        std::cout << this->_headers["Content-Type"] << std::endl;
         try {
             if (!this->getFile().empty()) {
                 lines = readFile(this->getLocation().getRoot() + this->getFile());
             } else if (this->getLocation().getIndex().size() != 0) {
-                this->_headers["Content-Type"] = "text/html";
                 lines = readIndex(this->getLocation());
             }
             if (lines.size() == 0 && this->getLocation().getDirListing()) {
                 lines = dirListing(_file, this->getLocation().getRoot() + _file);
-                this->_headers["Content-Type"] = "text/html";
             }
             if (lines.empty())
                 catchErrno();
             _status << "200";
         }
         catch (HttpException::exception &e) {
-            //this->_headers["Content-Type"] = "text/html";
             _status << e.what();
         }
     }
 
     // Method & Status
-    this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
 
     if (this->getMethod() == "POST") {
         postMethod();
@@ -563,6 +559,7 @@ void HttpParser::buildResponse(void) {
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
+        this->_headers["Content-Type"] = "text/html";
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
 	}
