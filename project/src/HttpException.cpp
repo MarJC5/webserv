@@ -81,11 +81,7 @@ HttpException &HttpException::operator<<(std::string statusCode) {
 */
 
 const char *HttpException::what() const throw() {
-	if (std::atoi(_statusCode.c_str()) >= 0 && std::atoi(_statusCode.c_str()) >= 100 && std::atoi(_statusCode.c_str()) < 300)
-		std::cout << *this;
-	else
-		std::cerr << *this;
-	return "";
+	return this->_statusCode.c_str();
 }
 
 /**
@@ -209,4 +205,22 @@ std::ostream &operator<<(std::ostream &o, HttpException const &rhs) {
 
 	o << color << status << reset << " " << rhs.getStatusMessage(status) << std::endl;
 	return o;
+}
+
+void catchErrno(void)
+{
+    switch (errno)
+    {
+        case EACCES:
+            throw HttpException("403");
+            break;
+
+        case ENOENT:
+            throw HttpException("404");
+            break;
+
+        // default statements
+        default:
+            throw HttpException("500");
+    }
 }

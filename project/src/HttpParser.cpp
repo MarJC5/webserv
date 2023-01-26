@@ -1,6 +1,8 @@
 #include "../inc/HttpParser.hpp"
 #include "../inc/checkLocation.hpp"
+#include "../inc/dirListing.hpp"
 
+#include <algorithm>
 /**
  * Method: HttpParser::consutrctor
  */
@@ -387,12 +389,11 @@ void HttpParser::showHeaders(void) const
  * Description: Build a response from the HTTP message.
  */
 
-void HttpParser::getMethod(std::vector<std::string> data) {
-	if (data[0].find("Error: Could not open file") != std::string::npos) {
-		_status << "404";
-	} else {
-		_status << "200";
-	}
+void HttpParser::checkMethod(std::vector <std::string> methods, std::string method) {
+    if (std::find(this->methods.begin(), this->methods.end(), method) == this->methods.end())
+        _status << "501";
+    else if (std::find(methods.begin(), methods.end(), method) == methods.end())
+        _status << "405";
 }
 
 void HttpParser::deleteMethod(void) {
@@ -442,14 +443,11 @@ bool HttpParser::postMethod(void) {
 		}
 		std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
 		// Save the file in the server
-		std::ofstream file("./www/uploads/" + filename, std::ios::binary);
+		std::ofstream file(getLocation().getRoot() + _file, std::ios::binary);
 		if (file.is_open()) {
 			file.write(fileContent.c_str(), fileContent.size());
 			file.close();
 			_status << "201";
-			_uri = "/uploads/";
-			_file = filename;
-			_loc = check_location(_serv.getLocations(), _uri, _file);
 		} else {
 			_status << "500";
 			return false;
@@ -458,33 +456,39 @@ bool HttpParser::postMethod(void) {
 	return true;
 }
 
-void HttpParser::buildResponse(void)
-{
-	std::string 			    fileExt;
-	std::vector<std::string>    lines;
-	std::ostringstream          ossHeader;
-	std::ostringstream          ossBody;
-	int contentLength           = 0;
-	time_t now                  = time(0);
-	struct tm timeStruct        = *gmtime(&now);
-	char buf[80];
+void HttpParser::buildResponse(void) {
+    std::string fileExt;
+    std::vector <std::string> lines;
+    std::ostringstream ossHeader;
+    std::ostringstream ossBody;
+    int contentLength = 0;
+    time_t now = time(0);
+    struct tm timeStruct = *gmtime(&now);
+    char buf[80];
 
-    if (!this->getFile().empty()) {
-        lines = readFile(this->getLocation().getRoot() + this->getFile());
-    } else {
-        lines = readIndex(this->getLocation());
+    try {
+        if (!this->getFile().empty()) {
+            lines = readFile(this->getLocation().getRoot() + this->getFile());
+        } else if (this->getLocation().getIndex().size() != 0) {
+            lines = readIndex(this->getLocation());
+        }
+        if (lines.size() == 0 && this->getLocation().getDirListing()) {
+            lines = dirListing(_file, this->getLocation().getRoot() + _file);
+            this->_headers["Content-Type"] = "text/html";
+        }
+        if (lines.empty())
+            catchErrno();
+        _status << "200";
     }
-    // Method & Status
-	if (this->getMethod() == "GET") {
-		getMethod(lines);
-	} else if (this->getMethod() == "POST") {
-		postMethod();
-	} else if (this->getMethod() == "DELETE") {
-		deleteMethod();
-	} else {
-		_status << "501";
-	}
+    catch (HttpException::exception &e)
+    {
+        this->_headers["Content-Type"] = "text/html";
+        _status << e.what();
+    }
 
+
+    // Method & Status
+    this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
 	this->_statusCode = _status.getStatusCode();
 	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
 
@@ -494,7 +498,14 @@ void HttpParser::buildResponse(void)
 		lines.push_back(error);
 		// Redirect to error page
 		this->_file = "./www/error/" + this->_statusCode + ".html";
-		lines = readFile(this->getFile());
+        try
+        {
+            lines = readFile(this->getFile());
+        } catch (HttpException::exception &e) {
+            _status << "500";
+            _file = "500.html";
+            lines = readFile("./www/error/500.html");
+        }
 	}
 
 	// Content-type
@@ -532,7 +543,7 @@ void HttpParser::buildResponse(void)
 	this->_body = ossBody.str();
 
 	this->_isRequest = false;
-	std::cout << *this << std::endl;
+	std::cout << *this;
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
@@ -583,5 +594,6 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i)
 			o << c << std::left << std::setw(18) << "\nBody" << nc << "\n"
 			  << i.getBody() << std::endl;
 	}
+    o << "----------------------------------------------------------------" << std::endl;
 	return (o);
 }
