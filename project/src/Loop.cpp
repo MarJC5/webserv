@@ -153,7 +153,7 @@ int Loop::getlist(int index)
 	return (*it);
 }
 
-void	Loop::loop(void)
+void	Loop::loop()
 {
 	HttpParser request;
 	HttpParser response;
@@ -237,6 +237,13 @@ void	Loop::loop(void)
 			} catch (HttpException &e) {
 				std::cout << e.what() << std::endl;
 			}
+			/*Cgi tmp(response);
+			tmp.set_maplist();
+			if (tmp.if_maplist_exist() == 0)
+			{
+				tmp.set_content_type();
+				tmp.launch_binary(envp, *serv[fd_accept - this->tab_socket.front()]);
+			}*/
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

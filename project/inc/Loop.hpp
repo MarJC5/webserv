@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <sys/select.h>
 #include "HttpParser.hpp"
+#include "Cgi.hpp"
 
 class Loop
 {
@@ -36,19 +37,19 @@ class Loop
 		int getlist(int index);
 
 		//Construit mes sockets avec les info de la class server
-		void createsocket(void); // crée un socket
-		void setstruct(void); // remplis ma struct avec les infos de la class Server via la reference de server dans cette class
-		void socksetopt(void); // socksetopt mon socket
-		void socketbind(void); // bind() mon socket nouvellement crée
-		void socketlisten(void); // listen() mon socket nouvellement crée
-		void socketaccept(void); // attend un appel du socket client
+		void createsocket(void);
+		void setstruct(void);
+		void socksetopt(void);
+		void socketbind(void);
+		void socketlisten(void);
+		void socketaccept(void);
 
 		//Lis la requête et envoie les info
-		void readrequete(void); // lis ce que le socket du client envoie
-		void sendrequete(void); // envoie des info au socket du client
+		void readrequete(void);
+		void sendrequete(void);
 
 		//close le socket
-		void closesocket(void); // close le socket et sont fd
+		void closesocket(void);
 
 		// tous mes accesseurs
 		const std::list<int> get_socket(void) const;
@@ -61,7 +62,7 @@ class Loop
 		const std::vector<Server*> &get_ref_server(void) const;
 
 		// loop
-		void	loop(void);
+		void	loop();
 
 	private:
 		std::list<int> tab_socket; // pour stocker les multiples sockets

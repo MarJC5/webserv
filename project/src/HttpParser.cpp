@@ -474,6 +474,13 @@ void HttpParser::buildResponse(void)
     } else {
         lines = readIndex(this->getLocation());
     }
+	// lancer CGI
+	Cgi tmp(this->_file, this->_headers);
+	tmp.set_maplist();
+	if (tmp.if_maplist_exist() == 0)
+	{
+		tmp.launch_binary();
+	}
     // Method & Status
 	if (this->getMethod() == "GET") {
 		getMethod(lines);
