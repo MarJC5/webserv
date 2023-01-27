@@ -559,7 +559,7 @@ void HttpParser::buildResponse(void) {
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
-        this->_headers["Content-Type"] = "text/html";
+        //this->_headers["Content-Type"] = "text/html";
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
 	}
