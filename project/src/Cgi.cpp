@@ -1,11 +1,11 @@
 #include "../inc/Cgi.hpp"
 
-Cgi::Cgi(std::string tmp, std::map<std::string, std::string> tmpp) : file(tmp), head(tmpp)
+Cgi::Cgi(std::string tmp, std::map<std::string, std::string> tmpp, Location tmppp) : file(tmp), head(tmpp), loc(tmppp)
 {
 	return ;
 }
 
-Cgi::Cgi(Cgi const & src ) : response(src.response)
+Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc)
 {
 	return ;
 }
@@ -28,11 +28,11 @@ void Cgi::set_maplist(void)
 
 int Cgi::if_maplist_exist(void)
 {
-	std::string tmp = this->response.getFile();
-	int it = tmp.find_last_of(".");
-	if (this->cgi_map.find(tmp.substr(it)) != this->cgi_map.end()) // renvoie erreur par rapport au extenstion dans le .conf et du fichier qu'on veux exec
+	std::cout << "IL ARRIVE ICI " << file << std::endl;
+	int it = file.find_last_of(".");
+	if (this->cgi_map.find(file.substr(it)) != this->cgi_map.end()) // renvoie erreur par rapport au extenstion dans le .conf et du fichier qu'on veux exec
 	{
-		this->content_type = this->cgi_map[tmp.substr(it)];
+		this->head["Content-Type"] = this->cgi_map[file.substr(it)];
 		return (0);
 	}
 	return (1);
@@ -40,17 +40,21 @@ int Cgi::if_maplist_exist(void)
 
 void  Cgi::launch_binary()
 {
-	const std::map<std::string, Location*> tmp = serv.getLocations();
-	std::cout << "Location : " << tmp.find("")->second->getCgiBin() << std::endl;
-	/*pid_t pid;
+	pid_t pid;
+	char *argv[] = { NULL, NULL };
 
 	pid = fork();
 	if (pid == -1)
 		throw std::exception(); // temporaire
 	else if (pid == 0)
 	{
-		//execve(, NULL, envp);
+		if (execve(this->loc.getCgiBin().c_str(), argv, GLOBAL_ENVP) == -1)
+		{
+			throw std::exception(); // temporaire
+		}
 	}
 	else
-		waitpid(pid, NULL, NULL);*/
+	{
+		waitpid(pid, NULL, 0); // temporaire
+	}
 }

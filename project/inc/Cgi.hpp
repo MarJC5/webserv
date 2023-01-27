@@ -9,14 +9,16 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "HttpParser.hpp"
+#include "webserv.hpp"
 class HttpParser;
 
 class Cgi
 {
-
 	public:
-		Cgi(std::string tmp, std::map<std::string, std::string> tmpp);
+		Cgi(std::string tmp, std::map<std::string, std::string> tmpp, Location tmppp);
 		Cgi(Cgi const & src);
 		~Cgi(void);
 		Cgi &operator=(Cgi &rhs);
@@ -28,8 +30,8 @@ class Cgi
 	private:
 		std::string file;
 		std::map<std::string, std::string> &head;
-		HttpParser &response; // contient toutes les infos pour faire run mon cgi
 		std::map<std::string, std::string> cgi_map; // tous les MIME type avec comme keyword l'exécutable
+		Location loc;
 
 };
 

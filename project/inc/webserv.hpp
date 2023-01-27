@@ -9,6 +9,8 @@
 	#define VERBOSE 0
 #endif
 
+inline char **GLOBAL_ENVP;
+
 #include <iostream>
 #include "Loop.hpp"
 #include "Server.hpp"
