@@ -1,6 +1,6 @@
 # CGI
 
-- [What is CGI?](#what-is-cgi)
+- [What is ?](#what-is-cgi)
 - [How does it work?](#how-does-it-work)
 - [CGI Environment Variables](#cgi-environment-variables)
   - [Mandatory](#mandatory)

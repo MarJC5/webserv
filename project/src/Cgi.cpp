@@ -43,11 +43,17 @@ void  Cgi::launch_binary()
 	pid_t pid;
 	char *argv[] = { NULL, NULL };
 
+	int dupfile[2];
+
 	pid = fork();
+	dup2(dupfile[0], STDOUT_FILENO); // dup stdout et stdin
+	dup2(dupfile[1], STDIN_FILENO);
 	if (pid == -1)
 		throw std::exception(); // temporaire
 	else if (pid == 0)
 	{
+		close(dupfile[0]);
+		close(dupfile[1]);
 		if (execve(this->loc.getCgiBin().c_str(), argv, GLOBAL_ENVP) == -1)
 		{
 			throw std::exception(); // temporaire
