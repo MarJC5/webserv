@@ -482,7 +482,7 @@ void HttpParser::buildResponse(void) {
                 lines = readIndex(this->getLocation());
             }
             if (lines.size() == 0 && this->getLocation().getDirListing()) {
-                lines = dirListing(_file, this->getLocation().getRoot() + _file);
+                lines = dirListing(concatPath(_uri, _file), this->getLocation().getRoot() + _file);
             }
             if (lines.empty())
                 catchErrno();
