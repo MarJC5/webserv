@@ -10,6 +10,7 @@
 
 int main(int argc, char **argv, char **envp)
 {
+	std::cout << envp[0] << std::endl;
 	GLOBAL_ENVP = envp;
     Config config;
     std::map<std::string, Location*> locations;

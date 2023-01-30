@@ -7,12 +7,10 @@ Cgi::Cgi(std::string tmp, std::map<std::string, std::string> &tmpp, Location tmp
 
 Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc), serv(src.serv)
 {
-	return ;
 }
 
 Cgi::~Cgi()
 {
-	return ;
 }
 
 Cgi &Cgi::operator=(Cgi &rhs)
@@ -34,13 +32,29 @@ int Cgi::if_maplist_exist(void)
 		this->head["Content-Type"] = this->cgi_map[file.substr(it)];
 		return (0);
 	}
-	this->head["Content-Type"] = this->cgi_map[file.substr(it)];
+	this->head["Content-Type"] = "text/plain\n\n";
 	return (1);
 }
 
-void create_env(void)
+void Cgi::create_env(void)
 {
-	
+	// https://helpx.adobe.com/coldfusion/cfml-reference/reserved-words-and-variables/cgi-environment-cgi-scope-variables/cgi-server-variables.html
+	// CONTENT_LENGTH = -1
+	// CONTENT_TYPE = this->head["Content-Type"]
+	// GATEWAY_INTERFACE = CGI/1.1
+	// PATH_INFO = path to cgi script
+	// PATH_TRANSLATED = X
+	// QUERRY_STRING = tous ce qui suit le ?
+	// REMOTE_ADDR = ip du client	
+	// REMOTE_HOST = nom du client
+	// REQUEST_METHODE = GET / POST
+	// SCRIPT_NAME = chemin du script
+	// SERVER_NAME = IP du serveur
+	// SERVER_PORT = Port du serveur
+	// SERVER_PROTOCOL = HTTP/1.1
+	// SERVER_SOFTWARE = ?
+	this->cgi_envp = "AUTH_TYPE=NULL";
+	this->cgi_envp += "CGI/1.1";
 	return ;
 }
 

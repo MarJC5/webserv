@@ -31,6 +31,7 @@ class Cgi
 		void create_env(void);
 		
 	private:
+		std::string cgi_envp;
 		std::string file;
 		std::map<std::string, std::string> head;
 		std::map<std::string, std::string> cgi_map; // tous les MIME type avec comme keyword l'exécutable
