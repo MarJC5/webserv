@@ -17,6 +17,9 @@ std::vector<std::string> dirListing(std::string locName, std::string const dirPa
 	std::vector<std::string> partial;
     std::vector<struct dirent> ents;
 
+
+    std::cout << locName << std::endl;
+
     if (locName.back() != '/')
         locName.push_back('/');
     if ((dir = opendir(dirPath.c_str())) == NULL)
