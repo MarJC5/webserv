@@ -475,9 +475,9 @@ void HttpParser::buildResponse(void)
         lines = readIndex(this->getLocation());
     }
 	// lancer CGI
-	Cgi tmp(this->_file, this->_headers, this->_loc);
+	Cgi tmp(this->_file, this->_headers, this->_loc, this->_serv);
 	tmp.set_maplist();
-	if (tmp.if_maplist_exist() == 0)
+	if (tmp.if_maplist_exist() == 1)
 	{
 		try
 		{
