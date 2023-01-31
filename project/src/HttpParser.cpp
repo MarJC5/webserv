@@ -475,18 +475,11 @@ void HttpParser::buildResponse(void)
         lines = readIndex(this->getLocation());
     }
 	// lancer CGI
-	Cgi tmp(this->_file, this->_headers, this->_loc, this->_serv);
+	Cgi tmp(this->_file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
 	tmp.set_maplist();
-	if (tmp.if_maplist_exist() == 1)
+	if (tmp.if_maplist_exist() == 0)
 	{
-		try
-		{
-			tmp.launch_binary();
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << '\n';
-		}
+		tmp.launch_binary();
 	}
     // Method & Status
 	if (this->getMethod() == "GET") {
