@@ -1,6 +1,6 @@
 #include "../inc/Cgi.hpp"
 
-char *strdup(const char *str)
+char *stringdup(const char *str)
 {
     int        size_src;
     int        c;
@@ -22,15 +22,14 @@ char *strdup(const char *str)
 
 void    free_env(char **env)
 {
-    int i;
+    int i = 0;
     
-	if (!ptr)
+	if (!env)
         return ;
     while (env[i])
 		i++;
     while (i != 0)
         free(env[i--]);
-    free(env);
 }
 
 char **vecToArr(std::vector<std::string> vec)
@@ -41,7 +40,7 @@ char **vecToArr(std::vector<std::string> vec)
     if (!(arr = (char **)malloc(sizeof(char *) * (vec.size() + 1))))
         return (NULL);
     for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++) {
-        if (!(arr[i] = strdup(it->c_str())))
+        if (!(arr[i] = stringdup(it->c_str())))
             return (NULL);
         i++;
     }
@@ -65,7 +64,9 @@ Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc), name(
 
 Cgi::~Cgi()
 {
-	free_env(env);
+    if (env) {
+        free_env(env);
+    }
 }
 
 Cgi &Cgi::operator=(Cgi &rhs)
@@ -119,22 +120,24 @@ void Cgi::create_env(void)
 	temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	temp.push_back("SERVER_PORT=" + ss.str());
 	temp.push_back("REQUEST_METHOD=GET");
-	temp.push_back("PATH_INFO=" + this->loc.getCgiBin());
-	temp.push_back("PATH_TRANSLATED=" + this->loc.getCgiBin());
-	temp.push_back("SCRIPT_NAME=php");
+	temp.push_back("PATH_INFO=" + this->file);
+	temp.push_back("PATH_TRANSLATED=" + this->file);
+	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
+    temp.push_back("REQUEST_URI=" + this->file);
 	temp.push_back("QUERY_STRING=");
+    temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
 	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"]);
 	temp.push_back("CONTENT_LENGTH=");
 
 	this->env = vecToArr(temp);
 
-	int i = 0;
-	while(i < 13)
-	{
-		std::cout << this->env[i] << std::endl;
-		i++;
-	}
+//	int i = 0;
+//	while(i < 13)
+//	{
+//		std::cout << this->env[i] << std::endl;
+//		i++;
+//	}
 	return ;
 }
 
@@ -142,9 +145,6 @@ void  Cgi::launch_binary()
 {
 	this->create_env();
 	std::string tmp = this->loc.getCgiBin();
-	char *argv[2];
-	argv[0] = strdup(tmp.c_str());
-	argv[1] = NULL;
 
 	/*int s[2];
 	int s_out = 0;
@@ -154,6 +154,10 @@ void  Cgi::launch_binary()
 	pid = fork();
 	if (pid == 0)
 	{
+        char *argv[3];
+        argv[0] = strdup(tmp.c_str());
+        argv[1] = strdup(file.c_str());
+        argv[2] = NULL;
 		/*close(s[1]);
 		dup2(s[0], STDIN_FILENO);
 		dup2(s_out, STDOUT_FILENO);*/
