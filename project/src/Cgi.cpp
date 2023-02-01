@@ -1,5 +1,55 @@
 #include "../inc/Cgi.hpp"
 
+char *strdup(const char *str)
+{
+    int        size_src;
+    int        c;
+    char    *ret;
+
+    size_src = strlen(str);
+    ret = (char *)malloc(sizeof(char) * (size_src + 1));
+    if (ret == NULL)
+        return (NULL);
+    c = 0;
+    while (str[c])
+    {
+        ret[c] = str[c];
+        c++;
+    }
+    ret[c] = '\0';
+    return (ret);
+}
+
+void    freeArr(char **ptr)
+{
+    int i;
+    
+    i = 0;
+    if (!ptr)
+        return ;
+    while (ptr[i])
+        free(ptr[i++]);
+    free(ptr);
+}
+
+char **vecToArr(std::vector<std::string> vec)
+{
+    char **arr = NULL;
+    int i = 0;
+
+    if (!(arr = (char **)malloc(sizeof(char *) * (vec.size() + 1))))
+        return (NULL);
+    for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++) {
+        if (!(arr[i] = strdup(it->c_str())))
+            return (NULL);
+        i++;
+    }
+    arr[i] = NULL;
+    return (arr);
+}
+
+// ____________________________________________________________________________________________ //
+
 Cgi::Cgi(std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport) : file(tfile), head(thead), loc(tloc)
 {
 	this->name = tname;
@@ -14,6 +64,7 @@ Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc), name(
 
 Cgi::~Cgi()
 {
+	freeArr(env);
 }
 
 Cgi &Cgi::operator=(Cgi &rhs)
@@ -24,34 +75,22 @@ Cgi &Cgi::operator=(Cgi &rhs)
 
 void Cgi::set_maplist(void)
 {
-	this->cgi_map[".php"] = "application/x-httpd-php\n\n";
-	//this->cgi_map["php"] = "application/x-httpd-php\n\n";
+	this->cgi_map["/php"] = "application/x-httpd-php\r\n";
 }
 
 int Cgi::if_maplist_exist(void)
 {
-	std::cout << "FILE : " << file << std::endl;
-	int it = this->file.find_last_of(".");
-	if (this->cgi_map.find(this->file.substr(it)) != this->cgi_map.end()) // renvoie erreur par rapport au extenstion dans le .conf et du fichier qu'on veux exec
-	{
-		this->head["Content-Type"] = this->cgi_map[this->file.substr(it)];
-		return (0);
-	}
-	this->head["Content-Type"] = this->cgi_map[this->file.substr(it)]; // pas là normalement
-	return (1);
-
-	// ---------------------------------------- //
-
-	/*std::cout << "LOC : " << this->loc.getCgiBin() << std::endl;
+	if (this->loc.getCgiBin().size() == 0)
+		return (1);
 	std::string tmp = this->loc.getCgiBin();
 	int it = tmp.find_last_of("/");
+		std::cout << "LOC : " << this->loc.getCgiBin() << " " << tmp.substr(it) << std::endl;
 	if (this->cgi_map.find(tmp.substr(it)) != this->cgi_map.end()) // renvoie erreur par rapport au extenstion dans le .conf et du fichier qu'on veux exec
 	{
 		this->head["Content-Type"] = this->cgi_map[tmp.substr(it)];
 		return (0);
 	}
-	this->head["Content-Type"] = this->cgi_map[tmp.substr(it)];
-	return (1);*/
+	return (1);	
 }
 
 void Cgi::create_env(void)
@@ -70,28 +109,37 @@ void Cgi::create_env(void)
 	// SERVER_PORT = Port du serveur
 	// SERVER_PROTOCOL = HTTP/1.1
 	// SERVER_SOFTWARE = ?
-	this->cgi_envp = "SERVER_SOFTWARE=name/version"; // ?
-	this->cgi_envp += "SERVER_NAME=";
-	this->cgi_envp += this->ip;
-	this->cgi_envp += "GATEWAY_INTERFACE=CGI/1.1";
-	this->cgi_envp += "SERVER_PROTOCOL=HTTP/1.1";
-	this->cgi_envp += "SERVER_PORT=";
-	this->cgi_envp += this->port;
-	this->cgi_envp += "REQUEST_METHOD="; // method
-	this->cgi_envp += "PATH_INFO="; // ??
-	this->cgi_envp += this->loc.getCgiBin();
-	this->cgi_envp += "PATH_TRANSLATED="; // ???
-	this->cgi_envp += "SCRIPT_NAME=php";
-	this->cgi_envp += "QUERY_STRING=";
-	this->cgi_envp += "REMOTE_ADDR=";
-	this->cgi_envp += "CONTENT_TYPE=";
-	this->cgi_envp += "CONTENT_LENGTH=";
+	std::vector<std::string> temp;
+	std::stringstream ss;
+	ss << this->port;
+	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
+	temp.push_back("SERVER_NAME=" + this->ip);
+	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	temp.push_back("SERVER_PORT=" + ss.str());
+	temp.push_back("REQUEST_METHOD=GET");
+	temp.push_back("PATH_INFO=" + this->loc.getCgiBin());
+	temp.push_back("PATH_TRANSLATED=" + this->loc.getCgiBin());
+	temp.push_back("SCRIPT_NAME=php");
+	temp.push_back("QUERY_STRING=");
+	temp.push_back("REMOTE_HOST=");
+	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"]);
+	temp.push_back("CONTENT_LENGTH=");
 
+	this->env = vecToArr(temp);
+
+	int i = 0;
+	while(i < 13)
+	{
+		std::cout << this->env[i] << std::endl;
+		i++;
+	}
 	return ;
 }
 
 void  Cgi::launch_binary()
 {
+	this->create_env();
 	std::string tmp = this->loc.getCgiBin();
 	char *argv[2];
 	argv[0] = strdup(tmp.c_str());
@@ -109,10 +157,10 @@ void  Cgi::launch_binary()
 		dup2(s[0], STDIN_FILENO);
 		dup2(s_out, STDOUT_FILENO);*/
 
-		std::cout << "IL ARRIVE ICI " << this->loc.getCgiBin() << " : " << this->head["Content-Type"];
-		if (execve(argv[0], argv, NULL) == -1)
+		std::cout << this->head["Content-Type"];
+		if (execve(argv[0], argv, this->env) == -1)
 		{
-			std::cout << "\nIL PLANTE ICI\n";
+			perror("DEBUG ");
 			exit(EXIT_FAILURE);
 			return ;
 		}
@@ -122,7 +170,6 @@ void  Cgi::launch_binary()
 	else
 	{
 		waitpid(pid, NULL, 0);
-		std::cout << "IL ARRIVE ICI !!!!!!!!!!!!!\n";
 		//close(s[0]);
 	}
 }

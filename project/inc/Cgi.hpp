@@ -15,6 +15,8 @@
 #include "Server.hpp"
 #include "HttpParser.hpp"
 #include "webserv.hpp"
+#include <vector>
+#include <sstream>
 class HttpParser;
 class Server;
 
@@ -32,7 +34,6 @@ class Cgi
 		void create_env(void);
 		
 	private:
-		std::string cgi_envp;
 		std::string file;
 		std::map<std::string, std::string> head;
 		std::map<std::string, std::string> cgi_map; // tous les MIME type avec comme keyword l'exécutable
@@ -41,6 +42,7 @@ class Cgi
 		std::string name;
         std::string ip;
         int         port;
+		char **env;
 };
 
 #endif
