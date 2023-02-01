@@ -20,16 +20,17 @@ char *strdup(const char *str)
     return (ret);
 }
 
-void    freeArr(char **ptr)
+void    free_env(char **env)
 {
     int i;
     
-    i = 0;
-    if (!ptr)
+	if (!ptr)
         return ;
-    while (ptr[i])
-        free(ptr[i++]);
-    free(ptr);
+    while (env[i])
+		i++;
+    while (i != 0)
+        free(env[i--]);
+    free(env);
 }
 
 char **vecToArr(std::vector<std::string> vec)
@@ -64,7 +65,7 @@ Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc), name(
 
 Cgi::~Cgi()
 {
-	freeArr(env);
+	free_env(env);
 }
 
 Cgi &Cgi::operator=(Cgi &rhs)
