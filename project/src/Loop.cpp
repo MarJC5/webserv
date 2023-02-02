@@ -228,7 +228,7 @@ void	Loop::loop(void)
             response = request;
             response.buildResponse();
             std::memset(w_buffer, 0, sizeof(w_buffer));
-            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+            std::memcpy(w_buffer, response.getBody().c_str(), 8192);
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

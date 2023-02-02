@@ -93,7 +93,7 @@ class HttpParser
 		void showHeaders(void) const;
 		std::vector<std::string> split(std::string str, std::string delimiter);
 
-        const std::vector<std::string> methods = {"GET", "POST", "DELETE"};
+        std::vector<std::string> methods;
 
 	protected:
 		std::string   _method;

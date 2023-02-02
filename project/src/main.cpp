@@ -10,9 +10,6 @@
 
 int main(int argc, char **argv, char **envp)
 {
-	std::cout << envp[0] << std::endl;
-	std::cout << envp[1] << std::endl;
-	std::cout << envp[2] << std::endl;
     Config config;
     std::map<std::string, Location*> locations;
 

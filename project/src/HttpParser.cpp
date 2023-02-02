@@ -7,9 +7,19 @@
  * Method: HttpParser::consutrctor
  */
 
-HttpParser::HttpParser(void){};
+HttpParser::HttpParser(void)
+{
+	this->methods.push_back("GET");
+	this->methods.push_back("POST");
+	this->methods.push_back("DELETE");
+};
 
-HttpParser::HttpParser(Server &serv) : _serv(serv){};
+HttpParser::HttpParser(Server &serv) : _serv(serv)
+{
+	this->methods.push_back("GET");
+	this->methods.push_back("POST");
+	this->methods.push_back("DELETE");
+};
 
 HttpParser::HttpParser(char *buffer)
 {
@@ -69,6 +79,7 @@ HttpParser &HttpParser::operator=(HttpParser const &rhs)
 		_loc = rhs.getLocation();
 		_serv = rhs.getServer();
 		_status = rhs.getStatus();
+		this->methods = rhs.methods;
 	}
 	return *this;
 }
@@ -421,7 +432,7 @@ bool HttpParser::postMethod(void) {
 	}
 	std::string boundary = _headers["Content-Type"].substr(30);
     boundary.erase(0,boundary.find_first_not_of('-'));
-    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos);
+    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos); // WTF BRO !!!
 	std::vector<std::string> parts = spliter(_body, boundary);
 	if (parts.size() < 2) {
 		_status << "400";
@@ -474,7 +485,23 @@ void HttpParser::buildResponse(void) {
     char buf[80];
 
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
-    if (getMethod() == "GET") {
+    // lancer CGI
+	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
+	cgi.set_maplist();
+	size_t n = _file.rfind(".");
+	if (n == std::string::npos)
+		n = 0;
+	if (!_file.empty() && _file.substr(n) == ".php")
+	{
+        if (cgi.if_maplist_exist() == 0)
+		{
+			_body = cgi.launch_binary();
+		    _body = _body.substr(_body.find("\r\n\r\n") + 4);
+			lines.push_back(_body);
+			_status << "200";
+		}
+	}
+	else if (getMethod() == "GET") {
         try {
             if (!this->getFile().empty()) {
                 lines = readFile(this->getLocation().getRoot() + this->getFile());
@@ -492,16 +519,7 @@ void HttpParser::buildResponse(void) {
             _status << e.what();
         }
     }
-	// lancer CGI
-	Cgi tmp(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
-	tmp.set_maplist();
-	if (tmp.if_maplist_exist() == 0)
-	{
-        if (_file.substr(_file.rfind(".")) == ".php")
-		    this->_body = tmp.launch_binary();
-	}
     // Method & Status
-
     if (this->getMethod() == "POST") {
         postMethod();
     } else if (this->getMethod() == "DELETE") {

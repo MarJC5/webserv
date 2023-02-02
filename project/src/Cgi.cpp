@@ -103,12 +103,11 @@ int Cgi::if_maplist_exist(void)
 		return (1);
 	std::string tmp = this->loc.getCgiBin();
 	int it = tmp.find_last_of("/");
-	std::cout << "LOC :::" << this->loc.getCgiBin() << std::endl;
 	if (this->cgi_map.find(tmp.substr(it)) != this->cgi_map.end())
 	{
 		return (0);
 	}
-	return (1);	
+	return (1);
 }
 
 void Cgi::create_env(void)
@@ -143,16 +142,7 @@ void Cgi::create_env(void)
     temp.push_back("REDIRECT_STATUS=200");
     temp.push_back("CONTENT_LENGTH=4096 ");
 */
-
 	this->env = vecToArr(temp);
-
-	int i = 0;
-	while(i < 15)
-	{
-		std::cout << this->env[i] << std::endl;
-		i++;
-	}
-	return ;
 }
 
 std::string  Cgi::launch_binary()
@@ -198,7 +188,6 @@ std::string  Cgi::launch_binary()
 
 		waitpid(pid, NULL, 0);
         std::string ret = readFromFd(pipe_out[0]);
-        std::cout << "DEBUG: " << ret << std::endl;
         close(pipe_out[0]);
 		return (ret);
 	}
