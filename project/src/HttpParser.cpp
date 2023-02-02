@@ -480,7 +480,7 @@ void HttpParser::buildResponse(void)
 	if (tmp.if_maplist_exist() == 0)
 	{
         if (_file.substr(_file.rfind(".")) == ".php")
-		    tmp.launch_binary();
+		    this->_body = tmp.launch_binary();
 	}
     // Method & Status
 	if (this->getMethod() == "GET") {
