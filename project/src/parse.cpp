@@ -85,7 +85,6 @@ std::string cut_word(std::string &line, size_t pos)
 
     temp = line.substr(0, pos);
     line.erase(0, temp.size());
-    std::cout << temp << " " << temp.back() << std::endl;
     if (temp.back() == ';')
         temp.erase(temp.size() -1, 1);
     return (temp);

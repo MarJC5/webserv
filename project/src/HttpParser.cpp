@@ -475,11 +475,12 @@ void HttpParser::buildResponse(void)
         lines = readIndex(this->getLocation());
     }
 	// lancer CGI
-	Cgi tmp(this->_file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
+	Cgi tmp(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
 	tmp.set_maplist();
 	if (tmp.if_maplist_exist() == 0)
 	{
-		tmp.launch_binary();
+        if (_file.substr(_file.rfind(".")) == ".php")
+		    tmp.launch_binary();
 	}
     // Method & Status
 	if (this->getMethod() == "GET") {

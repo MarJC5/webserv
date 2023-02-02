@@ -23,7 +23,7 @@ class Server;
 class Cgi
 {
 	public:
-		Cgi(std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport);
+		Cgi(std::string body,std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport);
 		Cgi(Cgi const & src);
 		~Cgi(void);
 		Cgi &operator=(Cgi &rhs);
@@ -36,6 +36,7 @@ class Cgi
 	private:
 		std::string file;
 		std::map<std::string, std::string> head;
+        std::string _body;
 		std::map<std::string, std::string> cgi_map; // tous les MIME type avec comme keyword l'exécutable
 		Location loc;
 

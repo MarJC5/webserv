@@ -48,18 +48,36 @@ char **vecToArr(std::vector<std::string> vec)
     return (arr);
 }
 
+std::string readFromFd(int fd)
+{
+    std::string ret;
+    char buf[4097];
+    int n;
+
+    while ((n = read(fd, buf, 4096))) {
+        if (n == -1)
+            return ("");
+        buf[n] = '\0';
+        ret.insert(ret.length(), buf, n);
+    }
+    return (ret);
+}
+
 // ____________________________________________________________________________________________ //
 
-Cgi::Cgi(std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport) : file(tfile), head(thead), loc(tloc)
+Cgi::Cgi(std::string body, std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport) : _body(body), file(tfile), head(thead), loc(tloc)
 {
 	this->name = tname;
     this->ip = tip;
     this->port = tport;
+
+    this->create_env();
 	return ;
 }
 
 Cgi::Cgi(Cgi const & src ) : file(src.file), head(src.head), loc(src.loc), name(src.name), ip(src.ip), port(src.port)
 {
+    this->create_env();
 }
 
 Cgi::~Cgi()
@@ -111,24 +129,35 @@ void Cgi::create_env(void)
 	// SERVER_PORT = Port du serveur
 	// SERVER_PROTOCOL = HTTP/1.1
 	// SERVER_SOFTWARE = ?
-	std::vector<std::string> temp;
-	std::stringstream ss;
-	ss << this->port;
-	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
-	temp.push_back("SERVER_NAME=" + this->ip);
-	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	temp.push_back("SERVER_PORT=" + ss.str());
-	temp.push_back("REQUEST_METHOD=GET");
-	temp.push_back("PATH_INFO=" + this->file);
-	temp.push_back("PATH_TRANSLATED=" + this->file);
-	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
-    temp.push_back("REQUEST_URI=" + this->file);
-	temp.push_back("QUERY_STRING=");
-    temp.push_back("REDIRECT_STATUS=0");
-	temp.push_back("REMOTE_HOST=");
-	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"]);
-	temp.push_back("CONTENT_LENGTH=");
+    std::vector<std::string> temp;
+//	std::stringstream ss;
+//	ss << this->port;
+//	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
+//	temp.push_back("SERVER_NAME=" + this->ip);
+//	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+//	temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+//	temp.push_back("SERVER_PORT=" + ss.str());
+//	temp.push_back("REQUEST_METHOD=GET");
+//	temp.push_back("PATH_INFO=" + this->file);
+//	temp.push_back("PATH_TRANSLATED=" + this->file);
+//	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
+//    temp.push_back("REQUEST_URI=" + this->file);
+//	temp.push_back("QUERY_STRING=");
+//    temp.push_back("REDIRECT_STATUS=0");
+//	temp.push_back("REMOTE_HOST=");
+//	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"]);
+//	temp.push_back("CONTENT_LENGTH=");
+
+    temp.push_back("REDIRECT_STATUS=CGI ");
+    temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    temp.push_back("REQUEST_METHOD=GET ");
+    temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+    temp.push_back("SCRIPT_FILENAME=" + this->file + " ");
+	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"] + " ");
+    temp.push_back("REDIRECT_STATUS=200");
+    temp.push_back("CONTENT_LENGTH=4096 ");
+
+
 
 	this->env = vecToArr(temp);
 
@@ -143,14 +172,14 @@ void Cgi::create_env(void)
 
 void  Cgi::launch_binary()
 {
-	this->create_env();
 	std::string tmp = this->loc.getCgiBin();
 
-	/*int s[2];
-	int s_out = 0;
-	pipe(s);*/
+	int pipe_in[2];
+    int pipe_out[2];
+	pipe(pipe_in);
+    pipe(pipe_out);
 
-	pid_t pid = 0;
+    pid_t pid = 0;
 	pid = fork();
 	if (pid == 0)
 	{
@@ -158,11 +187,15 @@ void  Cgi::launch_binary()
         argv[0] = strdup(tmp.c_str());
         argv[1] = strdup(file.c_str());
         argv[2] = NULL;
-		/*close(s[1]);
-		dup2(s[0], STDIN_FILENO);
-		dup2(s_out, STDOUT_FILENO);*/
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
 
-		std::cout << this->head["Content-Type"];
+        close(pipe_in[0]);
+        close(pipe_in[1]);
+        close(pipe_out[0]);
+        close(pipe_out[1]);
+
+        std::cout << argv[0] << " " << argv[1] << std::endl;
 		if (execve(argv[0], argv, this->env) == -1)
 		{
 			perror("DEBUG ");
@@ -174,7 +207,15 @@ void  Cgi::launch_binary()
 	}
 	else
 	{
+        close(pipe_in[0]);
+        close(pipe_out[1]);
+        write(pipe_in[1], this->_body.c_str(), this->_body.length());
+        close(pipe_in[1]);
+        pipe_in[1] = -1;
+
 		waitpid(pid, NULL, 0);
-		//close(s[0]);
+        std::string ret = readFromFd(pipe_out[0]);
+        std::cout << "DEBUG: " << ret << std::endl;
+        close(pipe_out[0]);
 	}
 }
