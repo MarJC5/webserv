@@ -492,7 +492,14 @@ void HttpParser::buildResponse(void) {
             _status << e.what();
         }
     }
-
+	// lancer CGI
+	Cgi tmp(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
+	tmp.set_maplist();
+	if (tmp.if_maplist_exist() == 0)
+	{
+        if (_file.substr(_file.rfind(".")) == ".php")
+		    this->_body = tmp.launch_binary();
+	}
     // Method & Status
 
     if (this->getMethod() == "POST") {

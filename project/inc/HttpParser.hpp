@@ -26,6 +26,8 @@
 #include "Server.hpp"
 #include "parse.h"
 #include "webserv.hpp"
+#include "Cgi.hpp"
+class Cgi;
 
 class HttpParser
 {

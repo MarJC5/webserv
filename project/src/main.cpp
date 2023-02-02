@@ -10,17 +10,17 @@
 
 int main(int argc, char **argv, char **envp)
 {
-
+	std::cout << envp[0] << std::endl;
+	std::cout << envp[1] << std::endl;
+	std::cout << envp[2] << std::endl;
     Config config;
     std::map<std::string, Location*> locations;
-
-	(void)envp;
 
 	if (argc > 1)
 		std::cout << argv[1] << std::endl;
 
 	config.parseConf(static_cast<std::string>(argv[1]));
-	Loop test(config.getServer());
-	test.loop();
+	Loop looper(config.getServer());
+	looper.loop();
 	return (0);
 }

@@ -284,6 +284,3 @@ const std::vector<Server*> &Loop::get_ref_server(void) const
 {
 	return (this->serv);
 }
-
-/* *
-************************************************************************* */
