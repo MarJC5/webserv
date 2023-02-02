@@ -46,6 +46,21 @@ code {
     padding: 0 1rem;
 }
 
+.wrapper {
+    max-width: 100%;
+    margin: 1rem;
+}
+
+.dirlist {
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    padding: 1rem;
+}
+
+.dirlist a {
+    font-weight: normal;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

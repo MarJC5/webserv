@@ -1,6 +1,8 @@
 #include "../inc/HttpParser.hpp"
 #include "../inc/checkLocation.hpp"
+#include "../inc/dirListing.hpp"
 
+#include <algorithm>
 /**
  * Method: HttpParser::consutrctor
  */
@@ -122,22 +124,22 @@ void HttpParser::setServ(const Server &serv)
 }
 
 void HttpParser::setContentType(std::string fileExt, std::string accept) {
-	std::string contentType = "application/octet-stream"; // default content type
+    std::string contentType = "application/octet-stream"; // default content type
 
-	for (std::string::size_type i = 0; i < fileExt.length(); ++i)
-		fileExt[i] = std::tolower(fileExt[i]);
+    for (std::string::size_type i = 0; i < fileExt.length(); ++i)
+        fileExt[i] = std::tolower(fileExt[i]);
 
-	if (fileExt == "png" || fileExt == "jpg" || fileExt == "jpeg" || fileExt == "gif" || fileExt == "bmp" || fileExt == "tiff" || fileExt == "tif" || fileExt == "svg" || fileExt == "svgz") {
-		contentType = "image/" + fileExt;
-	} else if (fileExt == "avi" || fileExt == "mpg" || fileExt == "mpeg" || fileExt == "mp4" || fileExt == "mov" || fileExt == "wmv" || fileExt == "mkv" || fileExt == "webm" || fileExt == "ogv" || fileExt == "flv") {
-		contentType = "video/" + fileExt;
-	} else if (fileExt == "mp3" || fileExt == "wav" || fileExt == "ogg" || fileExt == "flac" || fileExt == "aac" || fileExt == "wma" || fileExt == "m4a" || fileExt == "mid" || fileExt == "midi") {
-		contentType = "audio/" + fileExt;
-	} else if (accept.size() > 0) {
-		contentType = accept.substr(0, accept.find(','));
-	}
-	if (this->getHeaders().find("Content-Type")->second.size() == 0)
-		_headers["Content-Type"] = contentType;
+    if (fileExt == "png" || fileExt == "jpg" || fileExt == "jpeg" || fileExt == "gif" || fileExt == "bmp" || fileExt == "tiff" || fileExt == "tif" || fileExt == "svg" || fileExt == "svgz") {
+        contentType = "image/" + fileExt;
+    } else if (fileExt == "avi" || fileExt == "mpg" || fileExt == "mpeg" || fileExt == "mp4" || fileExt == "mov" || fileExt == "wmv" || fileExt == "mkv" || fileExt == "webm" || fileExt == "ogv" || fileExt == "flv") {
+        contentType = "video/" + fileExt;
+    } else if (fileExt == "mp3" || fileExt == "wav" || fileExt == "ogg" || fileExt == "flac" || fileExt == "aac" || fileExt == "wma" || fileExt == "m4a" || fileExt == "mid" || fileExt == "midi") {
+        contentType = "audio/" + fileExt;
+    } else if (accept.size() > 0) {
+        contentType = accept.substr(0, accept.find(','));
+    }
+    if (this->getHeaders().find("Content-Type")->second.size())
+        _headers["Content-Type"] = contentType;
 }
 
 /**
@@ -387,12 +389,11 @@ void HttpParser::showHeaders(void) const
  * Description: Build a response from the HTTP message.
  */
 
-void HttpParser::getMethod(std::vector<std::string> data) {
-	if (data[0].find("Error: Could not open file") != std::string::npos) {
-		_status << "404";
-	} else {
-		_status << "200";
-	}
+void HttpParser::checkMethod(std::vector <std::string> methods, std::string method) {
+    if (std::find(this->methods.begin(), this->methods.end(), method) == this->methods.end())
+        _status << "501";
+    else if (std::find(methods.begin(), methods.end(), method) == methods.end())
+        _status << "405";
 }
 
 void HttpParser::deleteMethod(void) {
@@ -419,12 +420,14 @@ bool HttpParser::postMethod(void) {
 		return false;
 	}
 	std::string boundary = _headers["Content-Type"].substr(30);
+    boundary.erase(0,boundary.find_first_not_of('-'));
+    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos);
 	std::vector<std::string> parts = spliter(_body, boundary);
 	if (parts.size() < 2) {
 		_status << "400";
 		return false;
 	}
-	for (unsigned int i = 0; i < parts.size(); i++) {
+    for (unsigned int i = 1; i < parts.size(); i++) {
 		std::string part = parts[i];
 		if (part.empty() || !hasSuffix(part, "\r\n")) {
 			continue;
@@ -432,24 +435,26 @@ bool HttpParser::postMethod(void) {
 		// Find "Content-Disposition: form-data; name="file"; filename="filename.ext""
 		std::string::size_type pos = part.find("Content-Disposition: form-data; name=\"file\"; filename=\"");
 		if (pos == std::string::npos) {
-			continue;
+			_status << "400";
 		}
-		std::string filename = part.substr(pos + 55, part.find("\"", pos + 55) - pos - 55);
-		// Find the file content
+        int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
+		std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
+
+//        pos = part.find("Content-Type: ");
+//        n = std::string("Content-Type: ").size();
+//        _headers["Content-Type"] = part.substr(pos + n, part.find("\r\n", pos + n) - pos - n);
+        // Find the file content
 		pos = part.find("\r\n\r\n");
 		if (pos == std::string::npos) {
-			continue;
+            _status << "400";
 		}
 		std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
 		// Save the file in the server
-		std::ofstream file("./www/uploads/" + filename, std::ios::binary);
+		std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
 		if (file.is_open()) {
 			file.write(fileContent.c_str(), fileContent.size());
 			file.close();
 			_status << "201";
-			_uri = "/uploads/";
-			_file = filename;
-			_loc = check_location(_serv.getLocations(), _uri, _file);
 		} else {
 			_status << "500";
 			return false;
@@ -458,21 +463,34 @@ bool HttpParser::postMethod(void) {
 	return true;
 }
 
-void HttpParser::buildResponse(void)
-{
-	std::string 			    fileExt;
-	std::vector<std::string>    lines;
-	std::ostringstream          ossHeader;
-	std::ostringstream          ossBody;
-	int contentLength           = 0;
-	time_t now                  = time(0);
-	struct tm timeStruct        = *gmtime(&now);
-	char buf[80];
+void HttpParser::buildResponse(void) {
+    std::string fileExt;
+    std::vector <std::string> lines;
+    std::ostringstream ossHeader;
+    std::ostringstream ossBody;
+    int contentLength = 0;
+    time_t now = time(0);
+    struct tm timeStruct = *gmtime(&now);
+    char buf[80];
 
-    if (!this->getFile().empty()) {
-        lines = readFile(this->getLocation().getRoot() + this->getFile());
-    } else {
-        lines = readIndex(this->getLocation());
+    this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
+    if (getMethod() == "GET") {
+        try {
+            if (!this->getFile().empty()) {
+                lines = readFile(this->getLocation().getRoot() + this->getFile());
+            } else if (this->getLocation().getIndex().size() != 0) {
+                lines = readIndex(this->getLocation());
+            }
+            if (lines.size() == 0 && this->getLocation().getDirListing()) {
+                lines = dirListing(concatPath(_uri, _file), this->getLocation().getRoot() + _file);
+            }
+            if (lines.empty())
+                catchErrno();
+            _status << "200";
+        }
+        catch (HttpException::exception &e) {
+            _status << e.what();
+        }
     }
 	// lancer CGI
 	Cgi tmp(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
@@ -483,15 +501,12 @@ void HttpParser::buildResponse(void)
 		    this->_body = tmp.launch_binary();
 	}
     // Method & Status
-	if (this->getMethod() == "GET") {
-		getMethod(lines);
-	} else if (this->getMethod() == "POST") {
-		postMethod();
-	} else if (this->getMethod() == "DELETE") {
-		deleteMethod();
-	} else {
-		_status << "501";
-	}
+
+    if (this->getMethod() == "POST") {
+        postMethod();
+    } else if (this->getMethod() == "DELETE") {
+        deleteMethod();
+    }
 
 	this->_statusCode = _status.getStatusCode();
 	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
@@ -502,7 +517,14 @@ void HttpParser::buildResponse(void)
 		lines.push_back(error);
 		// Redirect to error page
 		this->_file = "./www/error/" + this->_statusCode + ".html";
-		lines = readFile(this->getFile());
+        try
+        {
+            lines = readFile(this->getFile());
+        } catch (HttpException::exception &e) {
+            _status << "500";
+            _file = "500.html";
+            lines = readFile("./www/error/500.html");
+        }
 	}
 
 	// Content-type
@@ -540,11 +562,11 @@ void HttpParser::buildResponse(void)
 	this->_body = ossBody.str();
 
 	this->_isRequest = false;
-	std::cout << *this << std::endl;
+	std::cout << *this;
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
-		_headers["Content-Type"] = "text/html";
+        //this->_headers["Content-Type"] = "text/html";
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
 	}
@@ -591,5 +613,6 @@ std::ostream &operator<<(std::ostream &o, HttpParser const &i)
 			o << c << std::left << std::setw(18) << "\nBody" << nc << "\n"
 			  << i.getBody() << std::endl;
 	}
+    o << "----------------------------------------------------------------" << std::endl;
 	return (o);
 }

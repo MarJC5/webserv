@@ -153,7 +153,7 @@ int Loop::getlist(int index)
 	return (*it);
 }
 
-void	Loop::loop()
+void	Loop::loop(void)
 {
 	HttpParser request;
 	HttpParser response;
@@ -215,12 +215,8 @@ void	Loop::loop()
 				readrequete();
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
-				try {
-					request.parse(r_buffer);
-					std::cout << request << std::endl;
-				} catch (HttpException &e) {
-					std::cout << e.what() << std::endl;
-				}
+                request.parse(r_buffer);
+                std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
 				break ;
 			}
@@ -229,21 +225,10 @@ void	Loop::loop()
 		// lis message (reponse)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
-			try {
-				response = request;
-				response.buildResponse();
-				std::memset(w_buffer, 0, sizeof(w_buffer));
-				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-			} catch (HttpException &e) {
-				std::cout << e.what() << std::endl;
-			}
-			/*Cgi tmp(response);
-			tmp.set_maplist();
-			if (tmp.if_maplist_exist() == 0)
-			{
-				tmp.set_content_type();
-				tmp.launch_binary(envp, *serv[fd_accept - this->tab_socket.front()]);
-			}*/
+            response = request;
+            response.buildResponse();
+            std::memset(w_buffer, 0, sizeof(w_buffer));
+            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);
@@ -299,6 +284,3 @@ const std::vector<Server*> &Loop::get_ref_server(void) const
 {
 	return (this->serv);
 }
-
-/* *
-************************************************************************* */

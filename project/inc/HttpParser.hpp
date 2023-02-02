@@ -32,6 +32,7 @@ class Cgi;
 class HttpParser
 {
 	public:
+
 		HttpParser(void);
         HttpParser(Server &serv);
 		HttpParser(char *buffer);
@@ -85,12 +86,14 @@ class HttpParser
 		// Build the HTTP response message with HttpParser instance variables.
 		void buildResponse(void);
 		void deleteMethod(void);
-		void getMethod(std::vector<std::string> data);
-		bool postMethod(void);
+        void checkMethod(std::vector<std::string>, std::string);
+        bool postMethod(void);
 
 		// Methods
 		void showHeaders(void) const;
 		std::vector<std::string> split(std::string str, std::string delimiter);
+
+        const std::vector<std::string> methods = {"GET", "POST", "DELETE"};
 
 	protected:
 		std::string   _method;

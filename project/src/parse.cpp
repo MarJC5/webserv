@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "../inc/HttpException.hpp"
 
 std::vector<std::string> readFile(std::string fileName) {
 	std::string line;
@@ -37,12 +38,20 @@ std::vector<std::string> readFile(std::string fileName) {
 			_lines.push_back(str);
 		}
 		file.close();
-	} else {
-		_lines.push_back("Error: Could not open file");
-	}
+	} else if (errno) {
+        catchErrno();
+    }
 	return _lines;
 }
 
+std::string concatPath(std::string str1, std::string str2)
+{
+    if (str1.back() == '/' && str2.front() == '/')
+        str1.erase(str1.size() - 1);
+    else if (str1.back() != '/' && str2.front() != '/')
+        str1.push_back('/');
+    return (str1 + str2);
+}
 size_t findKey(std::string line, std::string search)
 {
     size_t ret;

@@ -19,6 +19,7 @@
 #include <string>
 #include <cstdlib>
 #include <map>
+#include <errno.h>
 
 #include "status.h"
 
@@ -57,4 +58,5 @@ class HttpException : public std::exception
 
 std::ostream &operator<<(std::ostream &o, HttpException const &rhs);
 
+void catchErrno(void);
 #endif

@@ -123,7 +123,7 @@ bool Properties::parseAllowedMethod(std::string line) {
     size_t pos;
 
     if ((pos = findKey(line, "method ")) != std::string::npos) {
-        _cgi_extensions = split(line, " ");
+        _allowed_method = split(line, " ");
         return (true);
     }
     return (false);

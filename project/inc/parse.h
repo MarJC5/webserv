@@ -14,5 +14,6 @@ std::vector<std::string> readFile(std::string fileName);
 
 bool hasSuffix(const std::string &str, const std::string &suffix);
 std::vector<std::string> spliter(const std::string& s, const std::string& delimiter);
+std::string concatPath(std::string str1, std::string str2);
 
 #endif //WEBSERV_PARSE_H
