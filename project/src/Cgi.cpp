@@ -143,6 +143,7 @@ void Cgi::create_env(void)
     temp.push_back("CONTENT_LENGTH=4096 ");
 */
 	this->env = vecToArr(temp);
+	return ;
 }
 
 std::string  Cgi::launch_binary()
