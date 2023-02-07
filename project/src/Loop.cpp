@@ -1,8 +1,37 @@
 #include "../inc/Loop.hpp"
+#include <string>
+#include <bitset>
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
+
+void addrProc(std::string &addr, int pos, size_t &n)
+{
+    std::string temp;
+    int byte;
+
+    temp = addr.substr(0, pos);
+    addr.erase(0, pos + 1);
+    byte = std::atoi(temp.c_str());
+    if (byte >= 0 && byte < 256)
+        n = (n << 8) | byte;
+}
+
+int ft_inetAddr(std::string addr)
+{
+    size_t n = 0;
+    size_t pos;
+
+    if (addr == "")
+        return (-1);
+    while((pos = addr.find(".")) != std::string::npos) {
+        addrProc(addr, pos, n);
+    }
+    addrProc(addr, pos, n);
+    n = htonl(n);
+    return (n);
+}
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
@@ -71,11 +100,11 @@ void Loop::setstruct(void)
 		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		std::cout << c << std::left << std::setw(18) << "Name" << nc << ": "  << this->serv[i]->getName() << std::endl;
 		std::cout << c << std::left << std::setw(18) << "Host" << nc << ": " << this->serv[i]->getIp().c_str() << ":" << this->serv[i]->getPort() << std::endl;
-		std::cout << c << std::left << std::setw(18) << "inet_addr" << nc << ": " << inet_addr(this->serv[i]->getIp().c_str()) << std::endl;
-		std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
+		std::cout << c << std::left << std::setw(18) << "ft_inet_addr" << nc << ": " << ft_inetAddr(this->serv[i]->getIp().c_str()) << std::endl;
+        std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		this->sockaddr.sin_addr.s_addr = inet_addr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
+		this->sockaddr.sin_addr.s_addr = ft_inetAddr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
 	}
