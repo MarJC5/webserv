@@ -41,6 +41,8 @@ std::vector<std::string> readFile(std::string fileName) {
 	} else if (errno) {
         catchErrno();
     }
+//    for (std::vector<std::string>::iterator it = _lines.begin(); it < _lines.end(); it++)
+//        std::cout << "DEBUG: "<< *it << std::endl;
 	return _lines;
 }
 
@@ -93,9 +95,9 @@ std::string cut_word(std::string &line, size_t pos)
     std::string temp;
 
     temp = line.substr(0, pos);
+    if (temp == "")
+        temp = line;
     line.erase(0, temp.size());
-    if (temp.back() == ';')
-        temp.erase(temp.size() -1, 1);
     return (temp);
 }
 
@@ -103,15 +105,21 @@ std::vector<std::string> split(std::string line, std::string sep)
 {
     std::vector<std::string> ret;
     size_t pos = 0;
+    size_t n;
 
+
+    n = line.find(";");
+    if (n != std::string::npos)
+        line = line.substr(0, n);
     while ((pos = line.find(sep)) != std::string::npos)
     {
         if (skip_space(line))
             continue ;
         ret.push_back(cut_word(line, pos));
     }
+    pos = line.find("\n");
     if (!line.empty())
-        ret.push_back(cut_word(line, line.back()));
+        ret.push_back(cut_word(line, pos));
     ret.erase(ret.begin());
     return (ret);
 }
