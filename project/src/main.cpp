@@ -8,11 +8,16 @@
 #include <stdio.h>
 #include <signal.h>
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
     Config config;
     std::map<std::string, Location*> locations;
 
+	if (argc <= 1)
+	{
+		std::cout << "Entrer le nom de fichier" << std::endl;
+		return (1);
+	}
 	if (argc > 1)
 		std::cout << argv[1] << std::endl;
 
