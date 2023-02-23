@@ -408,15 +408,13 @@ void HttpParser::checkMethod(std::vector <std::string> methods, std::string meth
 }
 
 void HttpParser::deleteMethod(void) {
-	if (access(_file.c_str(), F_OK ) != -1 ) {
-		if (std::remove(_file.c_str()) != 0) {
-			_status << "404";
-		} else {
-			_status << "200";
-		}
-	}
-	else {
-		_status << "404";
+	std::string path = _loc.getRoot() + _file;
+	if (std::remove(path.c_str()) != 0) {
+		_status << "400";
+	} else {
+		std::cout << "Removing: " << _file << std::endl;
+		_status << "204";
+		_body = "";
 	}
 }
 
@@ -425,51 +423,46 @@ bool HttpParser::postMethod(void) {
 		_status << "400";
 		return false;
 	}
-	// does it->second contain "multipart/form-data"?
-	if (_headers["Content-Type"].find("multipart/form-data") == std::string::npos) {
-		_status << "415";
-		return false;
-	}
-	std::string boundary = _headers["Content-Type"].substr(30);
-    boundary.erase(0,boundary.find_first_not_of('-'));
-    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos); // WTF BRO !!!
-	std::vector<std::string> parts = spliter(_body, boundary);
-	if (parts.size() < 2) {
-		_status << "400";
-		return false;
-	}
-    for (unsigned int i = 1; i < parts.size(); i++) {
-		std::string part = parts[i];
-		if (part.empty() || !hasSuffix(part, "\r\n")) {
-			continue;
-		}
-		// Find "Content-Disposition: form-data; name="file"; filename="filename.ext""
-		std::string::size_type pos = part.find("Content-Disposition: form-data; name=\"file\"; filename=\"");
-		if (pos == std::string::npos) {
+	// does it->second contain "multipart/form-data"? == Upload
+	if (_headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
+		std::string boundary = _headers["Content-Type"].substr(30);
+	    boundary.erase(0,boundary.find_first_not_of('-'));
+	    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos); // WTF BRO !!!
+		std::vector<std::string> parts = spliter(_body, boundary);
+		if (parts.size() < 2) {
 			_status << "400";
-		}
-        int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
-		std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
-
-//        pos = part.find("Content-Type: ");
-//        n = std::string("Content-Type: ").size();
-//        _headers["Content-Type"] = part.substr(pos + n, part.find("\r\n", pos + n) - pos - n);
-        // Find the file content
-		pos = part.find("\r\n\r\n");
-		if (pos == std::string::npos) {
-            _status << "400";
-		}
-		std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
-		// Save the file in the server
-		std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
-		if (file.is_open()) {
-			file.write(fileContent.c_str(), fileContent.size());
-			file.close();
-			_status << "201";
-		} else {
-			_status << "500";
 			return false;
 		}
+	    for (unsigned int i = 1; i < parts.size(); i++) {
+			std::string part = parts[i];
+			if (part.empty() || !hasSuffix(part, "\r\n")) {
+				continue;
+			}
+			// Find "Content-Disposition: form-data; name="file"; filename="filename.ext""
+			std::string::size_type pos = part.find("Content-Disposition: form-data; name=\"file\"; filename=\"");
+			if (pos == std::string::npos) {
+				_status << "400";
+			}
+	        int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
+			std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
+
+	        // Find the file content
+			pos = part.find("\r\n\r\n");
+			if (pos == std::string::npos) {
+	            _status << "400";
+			}
+			std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
+			// Save the file in the server
+			std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
+			if (file.is_open()) {
+				file.write(fileContent.c_str(), fileContent.size());
+				file.close();
+				_status << "201";
+			} else {
+				_status << "500";
+				return false;
+			}
+        }
 	}
 	return true;
 }
@@ -486,17 +479,17 @@ void HttpParser::buildResponse(void) {
 
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
-	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
+	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->getMethod(), this->getHttpVersion(), this->_serv.getIp(), this->_serv.getPort());
 	cgi.set_maplist();
 	size_t n = _file.rfind(".");
 	if (n == std::string::npos)
 		n = 0;
 	if (!_file.empty() && _file.substr(n) == ".php")
 	{
-        if (cgi.if_maplist_exist() == 0)
+		if (cgi.if_maplist_exist() == 0)
 		{
 			_body = cgi.launch_binary();
-		    _body = _body.substr(_body.find("\r\n\r\n") + 4);
+			_body = _body.substr(_body.find("\r\n\r\n") + 4);
 			lines.push_back(_body);
 			_status << "200";
 		}
@@ -584,7 +577,6 @@ void HttpParser::buildResponse(void) {
 
 	if (this->getMethod() == "POST") {
 		this->setMethod("GET");
-        //this->_headers["Content-Type"] = "text/html";
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
 	}

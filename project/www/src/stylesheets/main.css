@@ -8,7 +8,7 @@
     --warning: #ff9f43;
     --info: #54a0ff;
     --primary: #2e86de;
-    --cgi: #ccf;
+    --cgi: #99c;
 }
 
 /*
@@ -221,4 +221,8 @@ a {
 
 .cgi-page a {
     color: var(--cgi);
+}
+
+.cgi-page .btn--success {
+    background-color: var(--cgi);
 }

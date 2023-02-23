@@ -65,11 +65,13 @@ std::string readFromFd(int fd)
 
 // ____________________________________________________________________________________________ //
 
-Cgi::Cgi(std::string body, std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport) : file(tfile), head(thead), loc(tloc), _body(body)
+Cgi::Cgi(std::string body, std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tmethod, std::string tversion, std::string tip, int tport) : file(tfile), head(thead), loc(tloc), _body(body)
 {
 	this->name = tname;
     this->ip = tip;
     this->port = tport;
+	this->version = tversion;
+	this->method = tmethod;
     this->env = NULL;
 	return ;
 }
@@ -119,13 +121,13 @@ void Cgi::create_env(void)
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
 	temp.push_back("SERVER_NAME=" + this->ip);
 	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	temp.push_back("SERVER_PROTOCOL=" + this->version);
 	temp.push_back("SERVER_PORT=" + ss.str());
-	temp.push_back("REQUEST_METHOD=GET");
+	temp.push_back("REQUEST_METHOD=" + this->method);
 	temp.push_back("PATH_INFO=" + this->file);
 	temp.push_back("PATH_TRANSLATED=" + this->file);
 	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
-   temp.push_back("REQUEST_URI=" + this->file);
+    temp.push_back("REQUEST_URI=" + this->file);
 	temp.push_back("QUERY_STRING=");
     temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
@@ -183,14 +185,17 @@ std::string  Cgi::launch_binary()
 	{
         close(pipe_in[0]);
         close(pipe_out[1]);
-        write(pipe_in[1], this->_body.c_str(), this->_body.length());
+		if (this->method== "GET")
+            write(pipe_in[1], this->_body.c_str(), this->_body.length());
         close(pipe_in[1]);
         pipe_in[1] = -1;
 
 		waitpid(pid, NULL, 0);
         std::string ret = readFromFd(pipe_out[0]);
         close(pipe_out[0]);
-		return (ret);
+		if (this->method == "GET")
+			return (ret);
+		return (this->_body);
 	}
 	return ("");
 }

@@ -23,7 +23,7 @@ class Server;
 class Cgi
 {
 	public:
-		Cgi(std::string body,std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tip, int tport);
+		Cgi(std::string body,std::string tfile, std::map<std::string, std::string> &thead, Location tloc, std::string tname, std::string tmethod, std::string tversion, std::string tip, int tport);
 		Cgi(Cgi const & src);
 		~Cgi(void);
 		Cgi &operator=(Cgi &rhs);
@@ -42,6 +42,8 @@ class Cgi
 
 		std::string name;
         std::string ip;
+		std::string version;
+		std::string method;
         int         port;
 		char **env;
 };
