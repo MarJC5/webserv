@@ -147,7 +147,7 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	this->r_octet = sizeof(this->w_buffer);
+	//this->r_octet = sizeof(this->w_buffer);
 	while (this->r_octet > 0) {
 		int sent_data = send(this->tab_fd, this->w_buffer, this->r_octet, 0);
 		if (sent_data < 0) {
@@ -256,14 +256,18 @@ void	Loop::loop(void)
 		{
             response = request;
             response.buildResponse();
-            std::memset(w_buffer, 0, sizeof(w_buffer));
-            std::memcpy(w_buffer, response.getBody().c_str(), 8192);
+			std::cout << response.getBody().size() << std::endl;
+			this->w_buffer = new char[response.getBody().size()];
+            std::memset(w_buffer, 0, response.getBody().size());
+            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+			this->r_octet = response.getBody().size();
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);
 			close(this->tab_fd);
 			FD_CLR(this->tab_fd, &this->temp_fd);
 			FD_ZERO(&this->temp_fd);
+			delete[] this->w_buffer;
 		}
 	}
 	this->closesocket();

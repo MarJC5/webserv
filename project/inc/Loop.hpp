@@ -83,7 +83,7 @@ class Loop
 		int r_octet; // le nombre d'octet read
 		char r_buffer[8192]; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
-		char w_buffer[8192]; // le buffer pour send
+		char *w_buffer; // le buffer pour send
 
 		const std::vector<Server*> &serv; // reference de Server pour pouvoir accéder à ces variables et initialisé ma struct
 };
