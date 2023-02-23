@@ -8,6 +8,7 @@
     --warning: #ff9f43;
     --info: #54a0ff;
     --primary: #2e86de;
+    --cgi: #ccf;
 }
 
 /*
@@ -127,8 +128,8 @@ footer .container {
     color: var(--error);
 }
 
-.yellow {
-    color: purple;
+.php {
+    color: var(--cgi);
 }
 
 .green {
@@ -216,4 +217,8 @@ a {
 
 .delete-page a {
     color: var(--error);
+}
+
+.cgi-page a {
+    color: var(--cgi);
 }
