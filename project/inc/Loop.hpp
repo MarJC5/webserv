@@ -31,9 +31,9 @@ class Loop
 
 	public:
 		Loop(const std::vector<Server*> &tmp);
-		Loop(Loop const & src );
+		Loop(const Loop &src);
 		~Loop();
-		Loop &operator=(Loop &rhs);
+		Loop &operator=(const Loop &rhs);
 		int getlist(int index);
 
 		//Construit mes sockets avec les info de la class server
