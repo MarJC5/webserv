@@ -483,8 +483,8 @@ void HttpParser::buildResponse(void) {
     time_t now = time(0);
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
-
-	std::cout << "DEBUG:" << this->getLocation().getAllowedMet()[0] << this->getLocation().getAllowedMet()[1] << this->getLocation().getAllowedMet()[2] << std::endl;
+	for (std::vector<std::string>::const_iterator it = getLocation().getAllowedMet().begin() ; it < getLocation().getAllowedMet().end(); it++)
+		std::cout << "PARSE: " << getLocation().getRoot() << " " << *it << std::endl;
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
 	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
