@@ -127,6 +127,10 @@ footer .container {
     color: var(--error);
 }
 
+.yellow {
+    color: purple;
+}
+
 .green {
     color: var(--success);
 }

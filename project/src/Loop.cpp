@@ -256,7 +256,6 @@ void	Loop::loop(void)
 		{
             response = request;
             response.buildResponse();
-			std::cout << response.getBody().size() << std::endl;
 			this->w_buffer = new char[response.getBody().size()];
             std::memset(w_buffer, 0, response.getBody().size());
             std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
