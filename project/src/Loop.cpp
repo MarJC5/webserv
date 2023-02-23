@@ -1,6 +1,7 @@
 #include "../inc/Loop.hpp"
 #include <string>
 #include <bitset>
+#include <unistd.h>
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -273,6 +274,7 @@ void	Loop::loop(void)
             std::memset(w_buffer, 0, response.getBody().size() + 1);
             std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			this->r_octet = response.getBody().size();
+			std::cout << "DEBUG: " << r_octet << std::endl;
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

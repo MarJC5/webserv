@@ -582,7 +582,7 @@ void HttpParser::buildResponse(void) {
 	this->_body.clear();
 
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
-		//std::cout << *it << std::endl;
+		std::cout << *it << std::endl;
 		ossBody << *it;
 	}
 
