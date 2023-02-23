@@ -88,10 +88,9 @@ HttpParser &HttpParser::operator=(HttpParser const &rhs)
  * Methods: HttpParser::setters
  */
 
-void HttpParser::setStatus(std::string statusCode, std::string statusMessage)
+void HttpParser::setStatus(std::string status)
 {
-	_statusCode = statusCode;
-	_statusMessage = statusMessage;
+	_status << status;
 }
 
 void HttpParser::setStatusCode(std::string statusCode)
@@ -475,6 +474,7 @@ bool HttpParser::postMethod(void) {
 }
 
 void HttpParser::buildResponse(void) {
+	
     std::string fileExt;
     std::vector <std::string> lines;
     std::ostringstream ossHeader;
@@ -484,11 +484,13 @@ void HttpParser::buildResponse(void) {
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
 
+	std::cout << "DEBUG:" << this->getLocation().getAllowedMet()[0] << this->getLocation().getAllowedMet()[1] << this->getLocation().getAllowedMet()[2] << std::endl;
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
 	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
 	cgi.set_maplist();
 	size_t n = _file.rfind(".");
+	std::cout << "DEBUG BUILD: " << _status.getStatusCode() << std::endl;
 	if (n == std::string::npos)
 		n = 0;
 	if (!_file.empty() && _file.substr(n) == ".php")
@@ -501,8 +503,9 @@ void HttpParser::buildResponse(void) {
 			_status << "200";
 		}
 	}
-	else if (getMethod() == "GET") {
+	else if (getMethod() == "GET" && _status.getStatusCode() != "413") {
         try {
+			std::cout << this->getLocation().getRoot() << std::endl <<  this->getFile() << std::endl;
             if (!this->getFile().empty()) {
                 lines = readFile(this->getLocation().getRoot() + this->getFile());
             } else if (this->getLocation().getIndex().size() != 0) {
@@ -520,7 +523,8 @@ void HttpParser::buildResponse(void) {
         }
     }
     // Method & Status
-    if (this->getMethod() == "POST") {
+	std::cout << "DEBUG: " << _status.getStatusCode() << std::endl;
+    if (this->getMethod() == "POST" && _status.getStatusCode() != "413") {
         postMethod();
     } else if (this->getMethod() == "DELETE") {
         deleteMethod();

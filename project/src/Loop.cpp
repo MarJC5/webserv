@@ -138,8 +138,7 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
-	bzero(this->r_buffer, sizeof(this->r_buffer));
-	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
+	this->r_octet = recv(this->tab_fd, this->r_buffer, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -240,13 +239,20 @@ void	Loop::loop(void)
 			this->fd_accept = getlist(i);
 			if (FD_ISSET(this->fd_accept, &this->temp_fd))
 			{
+				this->r_buffer = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
+				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
+
+				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
+					request.setStatus("413");
+				}
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
                 request.parse(r_buffer);
                 std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
+				delete[] this->r_buffer;
 				break ;
 			}
 			i++;
@@ -255,6 +261,7 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
             response = request;
+			std::cout << "DEBUG READ: " << response.getStatus() << std::endl;
             response.buildResponse();
 			this->w_buffer = new char[response.getBody().size()];
             std::memset(w_buffer, 0, response.getBody().size());
