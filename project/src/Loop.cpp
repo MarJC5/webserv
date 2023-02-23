@@ -189,6 +189,8 @@ void	Loop::loop(void)
 	std::string c = "\033[1;32m";
 	std::string nc = "\033[0m";
 
+	int	too_long = 0;
+
 	try
 	{
 		size_t i = 0;
@@ -245,7 +247,10 @@ void	Loop::loop(void)
 				readrequete();
 
 				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
-					request.setStatus("413");
+					too_long = 1;
+				}
+				else {
+					too_long = 0;
 				}
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
@@ -261,10 +266,11 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
             response = request;
-			std::cout << "DEBUG READ: " << response.getStatus() << std::endl;
+			if (too_long)
+				response.setStatus("413");
             response.buildResponse();
-			this->w_buffer = new char[response.getBody().size()];
-            std::memset(w_buffer, 0, response.getBody().size());
+			this->w_buffer = new char[response.getBody().size() + 1];
+            std::memset(w_buffer, 0, response.getBody().size() + 1);
             std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			this->r_octet = response.getBody().size();
 			sendrequete();

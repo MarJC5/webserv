@@ -483,8 +483,6 @@ void HttpParser::buildResponse(void) {
     time_t now = time(0);
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
-	for (std::vector<std::string>::const_iterator it = getLocation().getAllowedMet().begin() ; it < getLocation().getAllowedMet().end(); it++)
-		std::cout << "PARSE: " << getLocation().getRoot() << " " << *it << std::endl;
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
 	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
@@ -523,7 +521,6 @@ void HttpParser::buildResponse(void) {
         }
     }
     // Method & Status
-	std::cout << "DEBUG: " << _status.getStatusCode() << std::endl;
     if (this->getMethod() == "POST" && _status.getStatusCode() != "413") {
         postMethod();
     } else if (this->getMethod() == "DELETE") {
@@ -568,7 +565,13 @@ void HttpParser::buildResponse(void) {
 	     << "Connection: " << this->_headers["Connection"] << "\r\n"
 	     << "Date: " << this->_headers["Date"] << "\r\n";
 
-	ossBody << "\n";
+	std::cout << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+	     << "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
+	     << "Connection: " << this->_headers["Connection"] << "\r\n"
+	     << "Date: " << this->_headers["Date"] << "\r\n" << std::endl;
+	
+
+	ossBody << "\r\n";
 
 	contentLength += ossBody.str().size();
 	ossHeader << contentLength;
@@ -578,8 +581,10 @@ void HttpParser::buildResponse(void) {
 	// Body
 	this->_body.clear();
 
-	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
+		//std::cout << *it << std::endl;
 		ossBody << *it;
+	}
 
 	this->_body = ossBody.str();
 

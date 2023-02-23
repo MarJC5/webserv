@@ -124,8 +124,6 @@ bool Properties::parseAllowedMethod(std::string line) {
 
     if ((pos = findKey(line, "method ")) != std::string::npos) {
         _allowed_method = split(line, " ");
-        for (std::vector<std::string>::iterator it = _allowed_method.begin() ; it < _allowed_method.end(); it++)
-            std::cout << "PARSE: " << *it << std::endl;
         return (true);
     }
     return (false);
