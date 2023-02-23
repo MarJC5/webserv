@@ -211,7 +211,7 @@ void	Loop::loop(void)
 	}
 	catch (std::exception &tmp)
 	{
-		std::cout << "erreur : loop initialisation\n";
+		std::cout << "erreur : loop initialisation (error in conf file)\n";
 		return ;
 	}
 	i = 0;

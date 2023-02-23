@@ -47,6 +47,7 @@ Config::~Config(void) {
 void Config::parseConf(std::string fileName)
 {
     int numServ = -1;
+    int i = 0;
 
     _file.readFile(fileName);
     for (std::vector<std::string>::const_iterator it = _file.getLines().begin(); it < _file.getLines().end(); it++)
