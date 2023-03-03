@@ -1,6 +1,7 @@
 #include "../inc/Loop.hpp"
 #include <string>
 #include <bitset>
+#include <unistd.h>
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -145,8 +146,8 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
-	std::memset(this->r_buffer, 0, sizeof(this->r_buffer));
-	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
+  std::memset(this->r_buffer, 0, sizeof(this->r_buffer));
+	this->r_octet = recv(this->tab_fd, this->r_buffer, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -195,6 +196,8 @@ void	Loop::loop(void)
 
 	std::string c = "\033[1;32m";
 	std::string nc = "\033[0m";
+
+	int	too_long = 0;
 
 	try
 	{
@@ -246,13 +249,23 @@ void	Loop::loop(void)
 			this->fd_accept = getlist(i);
 			if (FD_ISSET(this->fd_accept, &this->temp_fd))
 			{
+				this->r_buffer = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
+				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
+
+				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
+					too_long = 1;
+				}
+				else {
+					too_long = 0;
+				}
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
                 request.parse(r_buffer);
                 std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
+				delete[] this->r_buffer;
 				break ;
 			}
 			i++;
@@ -261,11 +274,14 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
             response = request;
+			if (too_long)
+				response.setStatus("413");
             response.buildResponse();
-			this->w_buffer = new char[response.getBody().size()];
-            std::memset(w_buffer, 0, response.getBody().size());
+			this->w_buffer = new char[response.getBody().size() + 1];
+            std::memset(w_buffer, 0, response.getBody().size() + 1);
             std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			this->r_octet = response.getBody().size();
+			std::cout << "DEBUG: " << r_octet << std::endl;
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

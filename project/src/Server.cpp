@@ -77,6 +77,8 @@ void Server::parseServer(std::vector<std::string>::const_iterator &it, std::vect
             continue;
         if (parsePort(*it))
             continue;
+        if (parseProper(*it))
+            continue;
         if (parseLocations(it, end))
             continue;
     }
