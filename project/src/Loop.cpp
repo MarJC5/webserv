@@ -44,7 +44,7 @@ Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 
 Loop::Loop(const Loop & src) : serv(src.serv)
 {
-	//*this = src;
+	*this = src;
 	return ;
 }
 
@@ -62,19 +62,27 @@ Loop::~Loop()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-Loop &Loop::operator=(Loop &rhs)
+Loop &Loop::operator=(const Loop &rhs)
 {
-	(void)rhs;
-	/*if ( this != &rhs )
+	if ( this != &rhs )
 	{
 		this->tab_socket = rhs.get_socket();
 		this->tab_fd = rhs.get_fd_socket();
-		this->r_octet = rhs.get_read_octet();
-		this->r_buffer = rhs.get_read_buffer();
-		this->w_octet = rhs.get_write_octet();
-		this->w_buffer = rhs.get_write_buffer();
-	}*/
-	return *this;
+		this->it_socket = rhs.it_socket;
+		this->sockaddr_vect = rhs.sockaddr_vect;
+		this->sockaddr = rhs.sockaddr;
+		this->i = rhs.i;
+		this->setfd = rhs.setfd;
+		this->fd_accept = rhs.fd_accept;
+		this->timeout = rhs.timeout;
+		this->temp_fd = rhs.temp_fd;
+		this->max_fd = rhs.max_fd;
+		this->temp = rhs.temp;
+		this->r_octet = rhs.r_octet;
+		this->w_octet = rhs.w_octet;
+		this->w_buffer = rhs.w_buffer;
+	}
+	return (*this);
 }
 
 /*
@@ -90,7 +98,6 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	bzero(&this->sockaddr, sizeof(this->sockaddr));
 	if (this->i < this->serv.size())
 	{
 		std::string c = "\033[1;34m";
@@ -104,7 +111,7 @@ void Loop::setstruct(void)
         std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		this->sockaddr.sin_addr.s_addr = ft_inetAddr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
+		this->sockaddr.sin_addr.s_addr = ft_inetAddr(this->serv[i]->getIp().c_str());
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
 	}
@@ -138,7 +145,7 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
-	bzero(this->r_buffer, sizeof(this->r_buffer));
+	std::memset(this->r_buffer, 0, sizeof(this->r_buffer));
 	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
@@ -147,7 +154,6 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	//this->r_octet = sizeof(this->w_buffer);
 	while (this->r_octet > 0) {
 		int sent_data = send(this->tab_fd, this->w_buffer, this->r_octet, 0);
 		if (sent_data < 0) {
