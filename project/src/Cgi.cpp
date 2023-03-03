@@ -174,7 +174,6 @@ std::string  Cgi::launch_binary()
 
 		if (execve(argv[0], argv, this->env) == -1)
 		{
-			perror("DEBUG ");
 			exit(EXIT_FAILURE);
 		}
 		exit(EXIT_SUCCESS);

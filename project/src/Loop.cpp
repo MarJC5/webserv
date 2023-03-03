@@ -146,7 +146,7 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
-  std::memset(this->r_buffer, 0, sizeof(this->r_buffer));
+  std::memset(this->r_buffer, 0, sizeof(serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1));
 	this->r_octet = recv(this->tab_fd, this->r_buffer, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
@@ -281,7 +281,6 @@ void	Loop::loop(void)
             std::memset(w_buffer, 0, response.getBody().size() + 1);
             std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
 			this->r_octet = response.getBody().size();
-			std::cout << "DEBUG: " << r_octet << std::endl;
 			sendrequete();
 			this->fd_accept = 0;
 			close(this->fd_accept);

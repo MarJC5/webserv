@@ -488,7 +488,6 @@ void HttpParser::buildResponse(void) {
 	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->_serv.getIp(), this->_serv.getPort());
 	cgi.set_maplist();
 	size_t n = _file.rfind(".");
-	std::cout << "DEBUG BUILD: " << _status.getStatusCode() << std::endl;
 	if (n == std::string::npos)
 		n = 0;
 	if (!_file.empty() && _file.substr(n) == ".php")
@@ -503,7 +502,7 @@ void HttpParser::buildResponse(void) {
 	}
 	else if (getMethod() == "GET" && _status.getStatusCode() != "413") {
         try {
-			std::cout << this->getLocation().getRoot() << std::endl <<  this->getFile() << std::endl;
+			if (VERBOSE == 2) {std::cout << this->getLocation().getRoot() << std::endl <<  this->getFile() << std::endl;}
             if (!this->getFile().empty()) {
                 lines = readFile(this->getLocation().getRoot() + this->getFile());
             } else if (this->getLocation().getIndex().size() != 0) {
@@ -564,12 +563,12 @@ void HttpParser::buildResponse(void) {
 	     << "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
 	     << "Connection: " << this->_headers["Connection"] << "\r\n"
 	     << "Date: " << this->_headers["Date"] << "\r\n";
-
-	std::cout << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+	if (VERBOSE == 1) {
+		std::cout << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
 	     << "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
 	     << "Connection: " << this->_headers["Connection"] << "\r\n"
 	     << "Date: " << this->_headers["Date"] << "\r\n" << std::endl;
-	
+	}
 
 	ossBody << "\r\n";
 
@@ -582,7 +581,6 @@ void HttpParser::buildResponse(void) {
 	this->_body.clear();
 
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
-		std::cout << *it << std::endl;
 		ossBody << *it;
 	}
 
