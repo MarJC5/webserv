@@ -22,6 +22,11 @@ int main(int argc, char **argv)
 		std::cout << argv[1] << std::endl;
 
 	config.parseConf(static_cast<std::string>(argv[1]));
+	if (config.getServer().size() < 1)
+	{
+		std::cout << "error: config file invalid" << std::endl;
+		return (1);
+	}
 	Loop looper(config.getServer());
 	looper.loop();
 	return (0);
