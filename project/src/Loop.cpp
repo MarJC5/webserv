@@ -36,8 +36,6 @@ int ft_inetAddr(std::string addr)
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
-	this->timeout.tv_sec = 60;
-	this->timeout.tv_usec = 0;
 	FD_ZERO(&this->setfd);
 	this->i = 0;
 	return ;
@@ -75,7 +73,6 @@ Loop &Loop::operator=(const Loop &rhs)
 		this->i = rhs.i;
 		this->setfd = rhs.setfd;
 		this->fd_accept = rhs.fd_accept;
-		this->timeout = rhs.timeout;
 		this->temp_fd = rhs.temp_fd;
 		this->max_fd = rhs.max_fd;
 		this->temp = rhs.temp;
@@ -226,6 +223,15 @@ void	Loop::loop(void)
 	i = 0;
 	int it = 0;
 	FD_ZERO(&this->setfd);
+	
+	struct timeval select_timeout;
+	select_timeout.tv_sec = 3;
+	select_timeout.tv_usec = 0;
+	double timeout = 5;
+	time_t t = 0;
+	time_t tt = 0;
+	this->temp = 0;
+
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
@@ -239,7 +245,16 @@ void	Loop::loop(void)
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, NULL);
+		if (this->temp != 0 && (tt - t) > timeout)
+		{
+			std::cout << "ca timeout avec" << tt - t << std::endl;
+			this->closesocket();
+			return ;
+		}
+		t = 0;
+		tt = 0;
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &select_timeout);
+		time(&t);
 		if (this->temp == -1)
 			ret = 1;
 		// envoie message (request)
@@ -289,9 +304,11 @@ void	Loop::loop(void)
 			FD_ZERO(&this->temp_fd);
 			delete[] this->w_buffer;
 		}
+		//sleep(6);
+		time(&tt);
 	}
 	this->closesocket();
-}
+} // src/Server.cpp:26 : segfault tous le temp;
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
