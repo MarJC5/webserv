@@ -228,9 +228,8 @@ void	Loop::loop(void)
 	select_timeout.tv_sec = 3;
 	select_timeout.tv_usec = 0;
 	double timeout = 5;
-	time_t t = 0;
-	time_t tt = 0;
-	this->temp = 0;
+	time_t time_before = 0;
+	time_t time_after = 0;
 
 	while (i < this->tab_socket.size())
 	{
@@ -245,16 +244,10 @@ void	Loop::loop(void)
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		if (this->temp != 0 && (tt - t) > timeout)
-		{
-			std::cout << "ca timeout avec" << tt - t << std::endl;
-			this->closesocket();
-			return ;
-		}
-		t = 0;
-		tt = 0;
+		time_before = 0;
+		time_after = 0;
 		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &select_timeout);
-		time(&t);
+		time(&time_before);
 		if (this->temp == -1)
 			ret = 1;
 		// envoie message (request)
@@ -268,7 +261,6 @@ void	Loop::loop(void)
 				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
-
 				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
 					too_long = 1;
 				}
@@ -291,21 +283,30 @@ void	Loop::loop(void)
             response = request;
 			if (too_long)
 				response.setStatus("413");
-            response.buildResponse();
-			this->w_buffer = new char[response.getBody().size() + 1];
-            std::memset(w_buffer, 0, response.getBody().size() + 1);
-            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-			this->r_octet = response.getBody().size();
-			sendrequete();
+			if (this->fd_accept == 3)
+				sleep(6);
+			time(&time_after);
+			std::cout << this->tab_fd << " : tab_fd\n" << this->fd_accept << " : fd_accept\n";
+			if ((time_after - time_before) > timeout)
+			{
+				std::cout << "ca timeout avec" << time_after - time_before << std::endl;
+				close(this->tab_fd);
+			}
+			else
+			{
+				response.buildResponse();
+				this->w_buffer = new char[response.getBody().size() + 1];
+				std::memset(w_buffer, 0, response.getBody().size() + 1);
+				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+				this->r_octet = response.getBody().size();
+				sendrequete();
+				close(this->tab_fd);
+				delete[] this->w_buffer;
+			}
 			this->fd_accept = 0;
-			close(this->fd_accept);
-			close(this->tab_fd);
-			FD_CLR(this->tab_fd, &this->temp_fd);
+			this->tab_fd = 0;
 			FD_ZERO(&this->temp_fd);
-			delete[] this->w_buffer;
 		}
-		//sleep(6);
-		time(&tt);
 	}
 	this->closesocket();
 } // src/Server.cpp:26 : segfault tous le temp;
