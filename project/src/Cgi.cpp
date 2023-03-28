@@ -1,4 +1,11 @@
 #include "../inc/Cgi.hpp"
+#include <fcntl.h>
+
+std::string toUpper(std::string s)
+{
+	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+	return s;
+}
 
 char *stringdup(const char *str)
 {
@@ -114,8 +121,7 @@ int Cgi::if_maplist_exist(void)
 
 void Cgi::create_env(void)
 {
-	// https://helpx.adobe.com/coldfusion/cfml-reference/reserved-words-and-variables/cgi-environment-cgi-scope-variables/cgi-server-variables.html
-    std::vector<std::string> temp;
+	std::vector<std::string> temp;
 	std::stringstream ss;
 	ss << this->port;
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
@@ -131,19 +137,20 @@ void Cgi::create_env(void)
 	temp.push_back("QUERY_STRING=");
     temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
-	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"]);
-	temp.push_back("CONTENT_LENGTH=NULL");
+	temp.push_back("CONTENT_TYPE=" + this->head["Content-Type"]);
+	temp.push_back("CONTENT_LENGTH=" + this->head["Content-Length"]);
+	temp.push_back("FILE_UPLOADS=On");
 
-/*
-    temp.push_back("REDIRECT_STATUS=CGI ");
-    temp.push_back("SERVER_PROTOCOL=HTTP/1.1");
-    temp.push_back("REQUEST_METHOD=GET ");
-    temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-    temp.push_back("SCRIPT_FILENAME=" + this->file + " ");
-	temp.push_back("CONTENT_TYPE=" + this->cgi_map["/php"] + " ");
-    temp.push_back("REDIRECT_STATUS=200");
-    temp.push_back("CONTENT_LENGTH=4096 ");
-*/
+	for (std::map<std::string, std::string>::iterator it = head.begin(); it != head.end() ; ++it) {
+		if (!it->second.empty())
+		{
+			std::string header = "HTTP_" + toUpper(it->first);
+			std::replace(header.begin(), header.end(), '-', '_');
+			temp.push_back(header + "= " + it->second);
+		}
+	}
+
+
 	this->env = vecToArr(temp);
 	return ;
 }
@@ -157,8 +164,10 @@ std::string  Cgi::launch_binary()
     int pipe_out[2];
 	pipe(pipe_in);
     pipe(pipe_out);
+	write(pipe_in[1], this->_body.c_str(), this->_body.length());
+	close(pipe_in[1]);
 
-    pid_t pid = 0;
+	pid_t pid = 0;
 	pid = fork();
 	if (pid == 0)
 	{
@@ -166,11 +175,10 @@ std::string  Cgi::launch_binary()
         argv[0] = strdup(tmp.c_str());
         argv[1] = strdup(file.c_str());
         argv[2] = NULL;
+
 		dup2(pipe_in[0], STDIN_FILENO);
 		dup2(pipe_out[1], STDOUT_FILENO);
-
         close(pipe_in[0]);
-        close(pipe_in[1]);
         close(pipe_out[0]);
         close(pipe_out[1]);
 
@@ -185,17 +193,13 @@ std::string  Cgi::launch_binary()
 	{
         close(pipe_in[0]);
         close(pipe_out[1]);
-		if (this->method== "GET")
-            write(pipe_in[1], this->_body.c_str(), this->_body.length());
-        close(pipe_in[1]);
-        pipe_in[1] = -1;
 
 		waitpid(pid, NULL, 0);
         std::string ret = readFromFd(pipe_out[0]);
         close(pipe_out[0]);
-		if (this->method == "GET")
-			return (ret);
-		return (this->_body);
+
+		std::cout << "return:\n"<< ret << std::endl;
+		return (ret);
 	}
 	return ("");
 }

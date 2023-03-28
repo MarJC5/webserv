@@ -32,7 +32,8 @@
 <main>
     <div class="container">
         <h2>GET</h2>
-        <p>Current CGI: <a href="info.php">info.php</a></p>
+        <p>Current CGI Info: <a href="info.php">info.php</a></p>
+        <p>CGI Post: <a href="calculatrice.php">calculatrice.php</a></p>
     </div>
 </main>
 

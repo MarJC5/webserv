@@ -265,6 +265,7 @@ void HttpParser::parse(char *buffer)
 		}
 	}
 	// Body
+	_body.clear();
 	while (std::getline(iss, line))
 	{
 		_body += line + "\n";
@@ -477,6 +478,7 @@ void HttpParser::buildResponse(void) {
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
 
+	std::cout << "Body: \n" << _body << std::endl;
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
 	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->getMethod(), this->getHttpVersion(), this->_serv.getIp(), this->_serv.getPort());
@@ -512,8 +514,7 @@ void HttpParser::buildResponse(void) {
             _status << e.what();
         }
     }
-    // Method & Status
-    if (this->getMethod() == "POST") {
+    else if (this->getMethod() == "POST") {
         postMethod();
     } else if (this->getMethod() == "DELETE") {
         deleteMethod();
