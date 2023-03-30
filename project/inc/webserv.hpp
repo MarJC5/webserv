@@ -6,7 +6,7 @@
 	// 0 = no verbose
 	// 1 = verbose
 	// 2 = verbose + debug
-	#define VERBOSE 0
+	#define VERBOSE 1
 #endif
 
 #include <iostream>

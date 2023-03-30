@@ -32,7 +32,8 @@
 <main>
     <div class="container">
         <?php
-        phpinfo();
+            var_dump(getenv());
+            phpinfo();
         ?>
     </div>
 </main>

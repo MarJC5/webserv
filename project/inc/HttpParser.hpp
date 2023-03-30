@@ -110,6 +110,7 @@ class HttpParser
         Location      _loc;
 		std::map<std::string, std::string> _headers;
 		HttpException _status;
+		bool ifcgi;
 };
 
 std::ostream &operator<<(std::ostream &o, HttpParser const &rhs);

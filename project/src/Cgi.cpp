@@ -134,12 +134,15 @@ void Cgi::create_env(void)
 	temp.push_back("PATH_TRANSLATED=" + this->file);
 	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
     temp.push_back("REQUEST_URI=" + this->file);
-	temp.push_back("QUERY_STRING=");
+	if (this->method != "POST")
+        temp.push_back("QUERY_STRING=");
+    else
+        temp.push_back("QUERY_STRING=" + this->_body);
     temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
-	temp.push_back("CONTENT_TYPE=" + this->head["Content-Type"]);
-	temp.push_back("CONTENT_LENGTH=" + this->head["Content-Length"]);
 	temp.push_back("FILE_UPLOADS=On");
+    temp.push_back("CONTENT_TYPE=" + this->head["Content-Type"]);
+	temp.push_back("CONTENT_LENGTH=" + this->head["Content-Length"]);
 
 	for (std::map<std::string, std::string>::iterator it = head.begin(); it != head.end() ; ++it) {
 		if (!it->second.empty())
@@ -149,8 +152,6 @@ void Cgi::create_env(void)
 			temp.push_back(header + "= " + it->second);
 		}
 	}
-
-
 	this->env = vecToArr(temp);
 	return ;
 }
@@ -196,9 +197,9 @@ std::string  Cgi::launch_binary()
 
 		waitpid(pid, NULL, 0);
         std::string ret = readFromFd(pipe_out[0]);
+        std::cout << "RET _________+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ :" << ret << std::endl;
         close(pipe_out[0]);
-
-		std::cout << "return:\n"<< ret << std::endl;
+        
 		return (ret);
 	}
 	return ("");

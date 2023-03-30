@@ -32,7 +32,7 @@
 <main>
     <div class="container">
         <h2>POST - CGI</h2>
-        <form method="post" action="/test.txt">
+        <form method="post" action="/php/calculatrice.php">
         		<input type="number" name="num1" required>
         		<select name="operation" required>
         			<option value="add">+</option>
@@ -46,14 +46,12 @@
 
 
         	<?php
-               var_dump($_SERVER["REQUEST_METHOD"]);
         	if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        	var_dump($_POST);
 
-                    	if(isset($_POST['num1']) && isset($_POST['num2']) && isset($_POST['operation'])){
-                    		$num1 = $_POST['num1'];
-                    		$num2 = $_POST['num2'];
-                    		$operation = $_POST['operation'];
+                    	if(isset($_GET['num1']) && isset($_GET['num2']) && isset($_GET['operation'])){
+                    		$num1 = $_GET['num1'];
+                    		$num2 = $_GET['num2'];
+                    		$operation = $_GET['operation'];
 
                     		switch($operation){
                     			case "add":
@@ -81,7 +79,6 @@
                     			echo "Result: " . $result;
                     		}
                     	}
-
         	}
         	?>
 

@@ -12,6 +12,7 @@ HttpParser::HttpParser(void)
 	this->methods.push_back("GET");
 	this->methods.push_back("POST");
 	this->methods.push_back("DELETE");
+	this->ifcgi = false;
 };
 
 HttpParser::HttpParser(Server &serv) : _serv(serv)
@@ -19,6 +20,7 @@ HttpParser::HttpParser(Server &serv) : _serv(serv)
 	this->methods.push_back("GET");
 	this->methods.push_back("POST");
 	this->methods.push_back("DELETE");
+	this->ifcgi = false;
 };
 
 HttpParser::HttpParser(char *buffer)
@@ -424,6 +426,7 @@ bool HttpParser::postMethod(void) {
 		_status << "400";
 		return false;
 	}
+
 	// does it->second contain "multipart/form-data"? == Upload
 	if (_headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		std::string boundary = _headers["Content-Type"].substr(30);
@@ -478,25 +481,69 @@ void HttpParser::buildResponse(void) {
     struct tm timeStruct = *gmtime(&now);
     char buf[80];
 
-	std::cout << "Body: \n" << _body << std::endl;
+	//std::cout << "Body: \n" << _body << std::endl;
     this->checkMethod(this->getLocation().getAllowedMet(), this->getMethod());
     // lancer CGI
-	Cgi cgi(this->_body, _loc.getRoot() + _file, this->_headers, this->_loc, this->_serv.getName(), this->getMethod(), this->getHttpVersion(), this->_serv.getIp(), this->_serv.getPort());
+	Cgi cgi(this->_body, concatPath(_loc.getRoot(), _file), this->_headers, this->_loc, this->_serv.getName(), this->getMethod(), this->getHttpVersion(), this->_serv.getIp(), this->_serv.getPort());
 	cgi.set_maplist();
 	size_t n = _file.rfind(".");
 	if (n == std::string::npos)
 		n = 0;
-	if (!_file.empty() && _file.substr(n) == ".php")
+	if (!_file.empty() && _file.substr(n) == ".php" && this->ifcgi == false)
 	{
 		if (cgi.if_maplist_exist() == 0)
 		{
+			if (this->getMethod() == "POST")
+				this->ifcgi = true;
 			_body = cgi.launch_binary();
 			_body = _body.substr(_body.find("\r\n\r\n") + 4);
 			lines.push_back(_body);
 			_status << "200";
 		}
 	}
-	else if (getMethod() == "GET") {
+	else if (!_file.empty() && _file.substr(n) == ".php" && this->ifcgi == true)
+	{
+		// Content-type
+		if (this->getMethod() != "POST") {
+			fileExt = this->getFile().substr(this->getFile().find_last_of(".") + 1);
+			setContentType(fileExt, this->getHeaders().find("Accept")->second);
+		}
+
+		// Date
+		std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &timeStruct);
+		this->_headers["Date"] = buf;
+
+		// Headers
+		for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+			contentLength += (*it).size();
+
+		ossBody << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+			<< "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
+			<< "Connection: " << this->_headers["Connection"] << "\r\n"
+			<< "Date: " << this->_headers["Date"] << "\r\n";
+
+		ossBody << "\n";
+
+		contentLength += ossBody.str().size();
+		ossHeader << contentLength;
+
+		this->_headers["Content-Length"] = ossHeader.str();
+
+		std::string tmp = this->_body;
+
+		// Body
+		this->_body.clear();
+
+		for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+		{
+			ossBody << *it;
+		}
+
+		this->_body = ossBody.str();
+		this->_body += tmp;
+		std::cout << "BODAODO" << this->_body << std::endl;
+	}
+	else if (getMethod() == "GET" && this->ifcgi == false) {
         try {
             if (!this->getFile().empty()) {
                 lines = readFile(this->getLocation().getRoot() + this->getFile());
@@ -538,40 +585,42 @@ void HttpParser::buildResponse(void) {
             lines = readFile("./www/error/500.html");
         }
 	}
+	
+	if (this->ifcgi == false)
+	{
+		// Content-type
+		if (this->getMethod() != "POST") {
+			fileExt = this->getFile().substr(this->getFile().find_last_of(".") + 1);
+			setContentType(fileExt, this->getHeaders().find("Accept")->second);
+		}
 
-	// Content-type
-	if (this->getMethod() != "POST") {
-		fileExt = this->getFile().substr(this->getFile().find_last_of(".") + 1);
-		setContentType(fileExt, this->getHeaders().find("Accept")->second);
+		// Date
+		std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &timeStruct);
+		this->_headers["Date"] = buf;
+
+		// Headers
+		for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+			contentLength += (*it).size();
+
+		ossBody << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
+			<< "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
+			<< "Connection: " << this->_headers["Connection"] << "\r\n"
+			<< "Date: " << this->_headers["Date"] << "\r\n";
+
+		ossBody << "\n";
+
+		contentLength += ossBody.str().size();
+		ossHeader << contentLength;
+
+		this->_headers["Content-Length"] = ossHeader.str();
+		// Body
+		this->_body.clear();
+
+		for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+			ossBody << *it;
+
+		this->_body = ossBody.str();
 	}
-
-	// Date
-	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %X GMT", &timeStruct);
-	this->_headers["Date"] = buf;
-
-	// Headers
-	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
-		contentLength += (*it).size();
-
-	ossBody << this->getHttpVersion() << " " << this->_statusCode << " " << this->_statusMessage << "\r\n"
-	     << "Content-Type: " << this->_headers["Content-Type"] << "\r\n"
-	     << "Connection: " << this->_headers["Connection"] << "\r\n"
-	     << "Date: " << this->_headers["Date"] << "\r\n";
-
-	ossBody << "\n";
-
-	contentLength += ossBody.str().size();
-	ossHeader << contentLength;
-
-	this->_headers["Content-Length"] = ossHeader.str();
-
-	// Body
-	this->_body.clear();
-
-	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
-		ossBody << *it;
-
-	this->_body = ossBody.str();
 
 	this->_isRequest = false;
 	std::cout << *this;
@@ -580,6 +629,7 @@ void HttpParser::buildResponse(void) {
 		this->setMethod("GET");
 		_headers["Content-Disposition"] = "inline";
 		this->buildResponse();
+		this->ifcgi = false;
 	}
 }
 
