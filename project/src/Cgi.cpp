@@ -134,7 +134,10 @@ void Cgi::create_env(void)
 	temp.push_back("PATH_TRANSLATED=" + this->file);
 	temp.push_back("SCRIPT_FILENAME=" + this->file);
     temp.push_back("REQUEST_URI=" + this->file);
-    temp.push_back("QUERY_STRING=");
+    if (this->head.find("Query-String") != this->head.end())
+		temp.push_back("QUERY_STRING=" + this->head["Query-String"]);
+	else
+		temp.push_back("QUERY_STRING=");
     temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
 	temp.push_back("FILE_UPLOADS=On");
