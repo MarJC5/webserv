@@ -27,7 +27,7 @@ DEBUGS		:= ${patsubst %, ${D_DIR}%, ${OBJS_FILES}}
 
 # FLAGS
 CC			= g++
-CFLAGS		= -Wall -Wextra 
+CFLAGS		= -Wall -Wextra -Werror
 # Add this for debug
 #CFLAGS		+= -g3
 

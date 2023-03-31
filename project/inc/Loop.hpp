@@ -31,9 +31,9 @@ class Loop
 
 	public:
 		Loop(const std::vector<Server*> &tmp);
-		Loop(Loop const & src );
+		Loop(const Loop &src);
 		~Loop();
-		Loop &operator=(Loop &rhs);
+		Loop &operator=(const Loop &rhs);
 		int getlist(int index);
 
 		//Construit mes sockets avec les info de la class server
@@ -81,7 +81,7 @@ class Loop
 		int temp;
 
 		int r_octet; // le nombre d'octet read
-		char r_buffer[8192]; // le buffer pour le recv (read)
+		char *r_buffer; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write
 		char *w_buffer; // le buffer pour send
 
