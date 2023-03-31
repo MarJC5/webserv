@@ -291,6 +291,12 @@ void HttpParser::parse(char *buffer)
 		}
 	}
 
+	std::vector<std::string> q = split(_file, "?");
+	if (q.size() == 2) {
+		_file = q[0];
+		_headers["Query-String"] = q[1];
+	}
+
 	// Host and port from headers
 	if (_isRequest)
 	{
