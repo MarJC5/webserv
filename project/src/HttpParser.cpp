@@ -1,6 +1,7 @@
 #include "../inc/HttpParser.hpp"
 #include "../inc/checkLocation.hpp"
 #include "../inc/dirListing.hpp"
+#include "../inc/parse.h"
 
 #include <algorithm>
 /**
@@ -287,7 +288,7 @@ void HttpParser::parse(char *buffer)
 		}
 		else if (tokens.size() == 2)
 		{
-			_headers[tokens[0]] = tokens[1];
+			_headers[tokens[0]] = trim(tokens[1]);
 		}
 	}
 

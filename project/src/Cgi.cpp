@@ -124,7 +124,6 @@ void Cgi::create_env(void)
 	std::vector<std::string> temp;
 	std::stringstream ss;
 	ss << this->port;
-	this->head["Content-Type"].erase(this->head["Content-Type"].size() - 1, 1);
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
 	temp.push_back("SERVER_NAME=" + this->ip);
 	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
