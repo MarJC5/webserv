@@ -25,6 +25,7 @@
 #include <sys/select.h>
 #include "HttpParser.hpp"
 #include "Cgi.hpp"
+#include <ctime>
 
 class Loop
 {
@@ -75,7 +76,6 @@ class Loop
 
 		fd_set setfd;
 		int	   fd_accept;
-		struct timeval timeout;
 		fd_set temp_fd;
 		int max_fd;
 		int temp;

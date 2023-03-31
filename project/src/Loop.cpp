@@ -36,8 +36,6 @@ int ft_inetAddr(std::string addr)
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
-	this->timeout.tv_sec = 60;
-	this->timeout.tv_usec = 0;
 	FD_ZERO(&this->setfd);
 	this->i = 0;
 	return ;
@@ -75,7 +73,6 @@ Loop &Loop::operator=(const Loop &rhs)
 		this->i = rhs.i;
 		this->setfd = rhs.setfd;
 		this->fd_accept = rhs.fd_accept;
-		this->timeout = rhs.timeout;
 		this->temp_fd = rhs.temp_fd;
 		this->max_fd = rhs.max_fd;
 		this->temp = rhs.temp;
@@ -226,6 +223,14 @@ void	Loop::loop(void)
 	i = 0;
 	int it = 0;
 	FD_ZERO(&this->setfd);
+	
+	struct timeval select_timeout;
+	select_timeout.tv_sec = 3;
+	select_timeout.tv_usec = 0;
+	double timeout = 5;
+	time_t time_before = 0;
+	time_t time_after = 0;
+
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
@@ -239,7 +244,10 @@ void	Loop::loop(void)
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, NULL);
+		time_before = 0;
+		time_after = 0;
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &select_timeout);
+		time(&time_before);
 		if (this->temp == -1)
 			ret = 1;
 		// envoie message (request)
@@ -253,7 +261,6 @@ void	Loop::loop(void)
 				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
-
 				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
 					too_long = 1;
 				}
@@ -276,22 +283,33 @@ void	Loop::loop(void)
             response = request;
 			if (too_long)
 				response.setStatus("413");
-            response.buildResponse();
-			this->w_buffer = new char[response.getBody().size() + 1];
-            std::memset(w_buffer, 0, response.getBody().size() + 1);
-            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-			this->r_octet = response.getBody().size();
-			sendrequete();
+			if (this->fd_accept == 3)
+				sleep(6);
+			time(&time_after);
+			std::cout << this->tab_fd << " : tab_fd\n" << this->fd_accept << " : fd_accept\n";
+			if ((time_after - time_before) > timeout)
+			{
+				std::cout << "ca timeout avec" << time_after - time_before << std::endl;
+				close(this->tab_fd);
+			}
+			else
+			{
+				response.buildResponse();
+				this->w_buffer = new char[response.getBody().size() + 1];
+				std::memset(w_buffer, 0, response.getBody().size() + 1);
+				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+				this->r_octet = response.getBody().size();
+				sendrequete();
+				close(this->tab_fd);
+				delete[] this->w_buffer;
+			}
 			this->fd_accept = 0;
-			close(this->fd_accept);
-			close(this->tab_fd);
-			FD_CLR(this->tab_fd, &this->temp_fd);
+			this->tab_fd = 0;
 			FD_ZERO(&this->temp_fd);
-			delete[] this->w_buffer;
 		}
 	}
 	this->closesocket();
-}
+} // src/Server.cpp:26 : segfault tous le temp;
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
