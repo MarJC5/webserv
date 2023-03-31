@@ -124,6 +124,7 @@ void Cgi::create_env(void)
 	std::vector<std::string> temp;
 	std::stringstream ss;
 	ss << this->port;
+	this->head["Content-Type"].erase(this->head["Content-Type"].size() - 1, 1);
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
 	temp.push_back("SERVER_NAME=" + this->ip);
 	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -132,12 +133,9 @@ void Cgi::create_env(void)
 	temp.push_back("REQUEST_METHOD=" + this->method);
 	temp.push_back("PATH_INFO=" + this->file);
 	temp.push_back("PATH_TRANSLATED=" + this->file);
-	temp.push_back("SCRIPT_NAME=" + this->loc.getCgiBin());
+	temp.push_back("SCRIPT_FILENAME=" + this->file);
     temp.push_back("REQUEST_URI=" + this->file);
-	if (this->method != "POST")
-        temp.push_back("QUERY_STRING=");
-    else
-        temp.push_back("QUERY_STRING=" + this->_body);
+    temp.push_back("QUERY_STRING=");
     temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
 	temp.push_back("FILE_UPLOADS=On");
@@ -184,6 +182,7 @@ std::string  Cgi::launch_binary()
         close(pipe_out[1]);
 
 		if (execve(argv[0], argv, this->env) == -1)
+		//if (execve("/Users/tpaquier/sgoinfre/php-cgi", argv, this->env) == -1)
 		{
 			perror("DEBUG ");
 			exit(EXIT_FAILURE);
@@ -197,7 +196,6 @@ std::string  Cgi::launch_binary()
 
 		waitpid(pid, NULL, 0);
         std::string ret = readFromFd(pipe_out[0]);
-        std::cout << "RET _________+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ :" << ret << std::endl;
         close(pipe_out[0]);
         
 		return (ret);

@@ -48,10 +48,10 @@
         	<?php
         	if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-                    	if(isset($_GET['num1']) && isset($_GET['num2']) && isset($_GET['operation'])){
-                    		$num1 = $_GET['num1'];
-                    		$num2 = $_GET['num2'];
-                    		$operation = $_GET['operation'];
+                    	if(isset($_POST['num1']) && isset($_POST['num2']) && isset($_POST['operation'])){
+                    		$num1 = $_POST['num1'];
+                    		$num2 = $_POST['num2'];
+                    		$operation = $_POST['operation'];
 
                     		switch($operation){
                     			case "add":

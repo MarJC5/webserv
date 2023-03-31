@@ -33,13 +33,11 @@
     <div class="container">
         <h2>POST - Upload</h2>
         <p>Envoi de fichier sur le serveur.</p>
-        <form action="/uploads" method="POST" enctype="multipart/form-data">
-            <div class="form-fields">
-                <label for="file">Upload: </label>
-                <input type="file" name="file" id="file"/>
-            </div>
-            <input type="submit" class="btn btn--success" value="Envoyer" />
-        </form>
+        <form action="/php/upload.php" method="post" enctype="multipart/form-data">
+              Select image to upload:
+              <input type="file" name="fileToUpload" id="fileToUpload">
+              <input type="submit" value="Upload Image" name="submit">
+            </form>
     </div>
 </main>
 

@@ -70,7 +70,7 @@ class HttpParser
 		static std::string urlDecode(std::string const &str);
 
 		// Response
-		void setStatus(std::string statusCode, std::string statusMessage);
+		void setStatus(std::string statusCode);
 		void setStatusMessage(std::string statusMessage);
 		void setStatusCode(std::string statusCode);
 

@@ -1,6 +1,7 @@
 #include "../inc/Loop.hpp"
 #include <string>
 #include <bitset>
+#include <unistd.h>
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -35,8 +36,6 @@ int ft_inetAddr(std::string addr)
 
 Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 {
-	this->timeout.tv_sec = 60;
-	this->timeout.tv_usec = 0;
 	FD_ZERO(&this->setfd);
 	this->i = 0;
 	return ;
@@ -44,7 +43,7 @@ Loop::Loop(const std::vector<Server*> &tmp) : serv(tmp)
 
 Loop::Loop(const Loop & src) : serv(src.serv)
 {
-	//*this = src;
+	*this = src;
 	return ;
 }
 
@@ -62,19 +61,26 @@ Loop::~Loop()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-Loop &Loop::operator=(Loop &rhs)
+Loop &Loop::operator=(const Loop &rhs)
 {
-	(void)rhs;
-	/*if ( this != &rhs )
+	if ( this != &rhs )
 	{
 		this->tab_socket = rhs.get_socket();
 		this->tab_fd = rhs.get_fd_socket();
-		this->r_octet = rhs.get_read_octet();
-		this->r_buffer = rhs.get_read_buffer();
-		this->w_octet = rhs.get_write_octet();
-		this->w_buffer = rhs.get_write_buffer();
-	}*/
-	return *this;
+		this->it_socket = rhs.it_socket;
+		this->sockaddr_vect = rhs.sockaddr_vect;
+		this->sockaddr = rhs.sockaddr;
+		this->i = rhs.i;
+		this->setfd = rhs.setfd;
+		this->fd_accept = rhs.fd_accept;
+		this->temp_fd = rhs.temp_fd;
+		this->max_fd = rhs.max_fd;
+		this->temp = rhs.temp;
+		this->r_octet = rhs.r_octet;
+		this->w_octet = rhs.w_octet;
+		this->w_buffer = rhs.w_buffer;
+	}
+	return (*this);
 }
 
 /*
@@ -90,7 +96,6 @@ void Loop::createsocket(void)
 
 void Loop::setstruct(void)
 {
-	bzero(&this->sockaddr, sizeof(this->sockaddr));
 	if (this->i < this->serv.size())
 	{
 		std::string c = "\033[1;34m";
@@ -104,7 +109,7 @@ void Loop::setstruct(void)
         std::cout << c << "----------------------------------------------------------------" << nc << std::endl;
 		this->sockaddr.sin_port = htons(this->serv[i]->getPort());
 		this->sockaddr.sin_family = AF_INET;
-		this->sockaddr.sin_addr.s_addr = ft_inetAddr(this->serv[i]->getIp().c_str()); // INADDR_ANY pour automatiquement set avec l'ip de l'host
+		this->sockaddr.sin_addr.s_addr = ft_inetAddr(this->serv[i]->getIp().c_str());
 		this->sockaddr_vect.push_back(this->sockaddr);
 		this->i++;
 	}
@@ -138,8 +143,8 @@ void Loop::socketaccept(void)
 
 void Loop::readrequete(void)
 {
-	bzero(this->r_buffer, sizeof(this->r_buffer));
-	this->r_octet = recv(this->tab_fd, this->r_buffer, sizeof(this->r_buffer), 0);
+  std::memset(this->r_buffer, 0, sizeof(serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1));
+	this->r_octet = recv(this->tab_fd, this->r_buffer, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
 	if (this->r_octet == -1)
 		throw std::exception(); // temporaire
 	this->r_buffer[this->r_octet] = '\0';
@@ -147,7 +152,6 @@ void Loop::readrequete(void)
 
 void Loop::sendrequete(void)
 {
-	//this->r_octet = sizeof(this->w_buffer);
 	while (this->r_octet > 0) {
 		int sent_data = send(this->tab_fd, this->w_buffer, this->r_octet, 0);
 		if (sent_data < 0) {
@@ -190,6 +194,8 @@ void	Loop::loop(void)
 	std::string c = "\033[1;32m";
 	std::string nc = "\033[0m";
 
+	int	too_long = 0;
+
 	try
 	{
 		size_t i = 0;
@@ -217,6 +223,14 @@ void	Loop::loop(void)
 	i = 0;
 	int it = 0;
 	FD_ZERO(&this->setfd);
+	
+	struct timeval select_timeout;
+	select_timeout.tv_sec = 3;
+	select_timeout.tv_usec = 0;
+	double timeout = 5;
+	time_t time_before = 0;
+	time_t time_after = 0;
+
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
@@ -230,7 +244,10 @@ void	Loop::loop(void)
 	while (ret != 1)
 	{
 		std::memcpy(&this->temp_fd, &this->setfd, sizeof(this->setfd));
-		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, NULL);
+		time_before = 0;
+		time_after = 0;
+		this->temp = select(this->max_fd + 1, &this->temp_fd, NULL, NULL, &select_timeout);
+		time(&time_before);
 		if (this->temp == -1)
 			ret = 1;
 		// envoie message (request)
@@ -240,13 +257,22 @@ void	Loop::loop(void)
 			this->fd_accept = getlist(i);
 			if (FD_ISSET(this->fd_accept, &this->temp_fd))
 			{
+				this->r_buffer = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
+				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
+				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
+					too_long = 1;
+				}
+				else {
+					too_long = 0;
+				}
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
                 request.parse(r_buffer);
                 std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
+				delete[] this->r_buffer;
 				break ;
 			}
 			i++;
@@ -255,22 +281,29 @@ void	Loop::loop(void)
 		if (FD_ISSET(this->tab_fd, &this->temp_fd))
 		{
             response = request;
-            response.buildResponse();
-			this->w_buffer = new char[response.getBody().size()];
-            std::memset(w_buffer, 0, response.getBody().size());
-            std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
-			this->r_octet = response.getBody().size();
-			sendrequete();
+			time(&time_after);
+			if ((time_after - time_before) > timeout)
+			{
+				close(this->tab_fd);
+			}
+			else
+			{
+				response.buildResponse();
+				this->w_buffer = new char[response.getBody().size() + 1];
+				std::memset(w_buffer, 0, response.getBody().size() + 1);
+				std::memcpy(w_buffer, response.getBody().c_str(), response.getBody().size());
+				this->r_octet = response.getBody().size();
+				sendrequete();
+				close(this->tab_fd);
+				delete[] this->w_buffer;
+			}
 			this->fd_accept = 0;
-			close(this->fd_accept);
-			close(this->tab_fd);
-			FD_CLR(this->tab_fd, &this->temp_fd);
+			this->tab_fd = 0;
 			FD_ZERO(&this->temp_fd);
-			delete[] this->w_buffer;
 		}
 	}
 	this->closesocket();
-}
+} // src/Server.cpp:26 : segfault tous le temp;
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

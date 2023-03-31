@@ -90,10 +90,9 @@ HttpParser &HttpParser::operator=(HttpParser const &rhs)
  * Methods: HttpParser::setters
  */
 
-void HttpParser::setStatus(std::string statusCode, std::string statusMessage)
+void HttpParser::setStatus(std::string statusCode)
 {
 	_statusCode = statusCode;
-	_statusMessage = statusMessage;
 }
 
 void HttpParser::setStatusCode(std::string statusCode)
@@ -422,6 +421,9 @@ void HttpParser::deleteMethod(void) {
 }
 
 bool HttpParser::postMethod(void) {
+	std::string fileContent;
+	std::string filename;
+
 	if (_headers["Content-Type"].empty()) {
 		_status << "400";
 		return false;
@@ -429,14 +431,20 @@ bool HttpParser::postMethod(void) {
 
 	// does it->second contain "multipart/form-data"? == Upload
 	if (_headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
+		
 		std::string boundary = _headers["Content-Type"].substr(30);
 	    boundary.erase(0,boundary.find_first_not_of('-'));
-	    _body = _body.substr(_body.find("/r/n") + 2, std::string::npos); // WTF BRO !!!
 		std::vector<std::string> parts = spliter(_body, boundary);
 		if (parts.size() < 2) {
 			_status << "400";
 			return false;
 		}
+		if ((int)_body.size() > 4096) // marque en dur !!!!!!!!!!!!!!!!!!
+		{
+			_status << "413";
+			return false;
+		}
+
 	    for (unsigned int i = 1; i < parts.size(); i++) {
 			std::string part = parts[i];
 			if (part.empty() || !hasSuffix(part, "\r\n")) {
@@ -448,25 +456,25 @@ bool HttpParser::postMethod(void) {
 				_status << "400";
 			}
 	        int n = std::string("Content-Disposition: form-data; name=\"file\"; filename=\"").size();
-			std::string filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
+			filename = part.substr(pos + n, part.find("\"", pos + n) - pos - n);
 
 	        // Find the file content
 			pos = part.find("\r\n\r\n");
 			if (pos == std::string::npos) {
 	            _status << "400";
 			}
-			std::string fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
-			// Save the file in the server
-			std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
-			if (file.is_open()) {
-				file.write(fileContent.c_str(), fileContent.size());
-				file.close();
-				_status << "201";
-			} else {
-				_status << "500";
-				return false;
-			}
+			fileContent = part.substr(pos + 4, part.find("\r\n--", pos + 4) - pos - 4);
         }
+		std::ofstream file(getLocation().getRoot() + filename, std::ios::binary);
+		// Save the file in the server
+		if (file.is_open()) {
+			file.write(fileContent.c_str(), fileContent.size());
+			file.close();
+			_status << "201";
+		} else {
+			_status << "500";
+			return false;
+		}
 	}
 	return true;
 }
@@ -496,6 +504,7 @@ void HttpParser::buildResponse(void) {
 			if (this->getMethod() == "POST")
 				this->ifcgi = true;
 			_body = cgi.launch_binary();
+			std::cout << _body << std::endl;
 			_body = _body.substr(_body.find("\r\n\r\n") + 4);
 			lines.push_back(_body);
 			_status << "200";
@@ -541,12 +550,14 @@ void HttpParser::buildResponse(void) {
 
 		this->_body = ossBody.str();
 		this->_body += tmp;
-		std::cout << "BODAODO" << this->_body << std::endl;
 	}
 	else if (getMethod() == "GET" && this->ifcgi == false) {
         try {
             if (!this->getFile().empty()) {
-                lines = readFile(this->getLocation().getRoot() + this->getFile());
+				if (std::atoi(this->_statusCode.c_str()) >= 400)
+			    	lines = readFile(this->getFile());
+				else
+                	lines = readFile(this->getLocation().getRoot() + this->getFile());
             } else if (this->getLocation().getIndex().size() != 0) {
                 lines = readIndex(this->getLocation());
             }
@@ -576,6 +587,7 @@ void HttpParser::buildResponse(void) {
 		lines.push_back(error);
 		// Redirect to error page
 		this->_file = "./www/error/" + this->_statusCode + ".html";
+		this->_uri = "/error/";
         try
         {
             lines = readFile(this->getFile());
