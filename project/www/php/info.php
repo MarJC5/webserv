@@ -21,19 +21,18 @@
             <a href="/index.html">Webserv - CGI PHP</a>
         </h1>
         <ul class="ul-inline">
-            <li><a href="/methods/get.html">Get</a></li>
-            <li><a href="/methods/post.html">Post</a></li>
-            <li><a href="/php/delete.php">Delete</a></li>
-            <li><a href="/php/index.php">CGI</a></li>
-        </ul>
+                    <li><a href="/methods/get.html">Get</a></li>
+                    <li><a href="/methods/post.html">Post</a></li>
+                    <li><a href="/methods/delete.html">Delete</a></li>
+                    <li><a href="/php/index.php">CGI</a></li>
+                </ul>
     </div>
 </header>
 
 <main>
     <div class="container">
-        <?php
-            phpinfo();
-        ?>
+        <?php error_log(); ?>
+        <?php phpinfo(); ?>
     </div>
 </main>
 

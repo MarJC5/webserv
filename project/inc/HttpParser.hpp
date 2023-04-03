@@ -85,11 +85,17 @@ class HttpParser
 
 		// Build the HTTP response message with HttpParser instance variables.
 		void buildResponse(void);
-		void deleteMethod(void);
         void checkMethod(std::vector<std::string>, std::string);
-        bool postMethod(void);
 
-		// Methods
+		void processCgi(std::vector<std::string>& lines, std::string& fileExt, struct tm& timeStruct, char* buf, std::ostringstream& ossHeader, std::ostringstream& ossBody, int& contentLength);
+		void processGetMethod(std::vector<std::string>& lines);
+		void processPostMethod(void);
+		void processDeleteMethod(void);
+		void processErrorPage(std::vector<std::string>& lines);
+		void processNonCgiRequest(std::vector<std::string>& lines, std::string& fileExt, struct tm& timeStruct, char* buf, std::ostringstream& ossHeader, std::ostringstream& ossBody, int& contentLength);
+
+
+	// Methods
 		void showHeaders(void) const;
 		std::vector<std::string> split(std::string str, std::string delimiter);
 
@@ -106,11 +112,11 @@ class HttpParser
 		std::string   _statusCode;
 		std::string   _statusMessage;
 		bool		  _isRequest;
+		bool          _ifcgi;
         Server        _serv;
         Location      _loc;
 		std::map<std::string, std::string> _headers;
 		HttpException _status;
-		bool ifcgi;
 };
 
 std::ostream &operator<<(std::ostream &o, HttpParser const &rhs);

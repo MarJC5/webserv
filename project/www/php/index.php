@@ -31,9 +31,8 @@
 
 <main>
     <div class="container">
-        <h2>GET</h2>
-        <p>Current CGI Info: <a href="info.php">info.php</a></p>
-        <p>CGI Post: <a href="calculatrice.php">calculatrice.php</a></p>
+        <p>This page is a GET request with cgi.</p>
+        <p>Here is a post request with cgi : <a href="calculatrice.php">calculatrice.php</a></p>
     </div>
 </main>
 

@@ -124,6 +124,9 @@ void Cgi::create_env(void)
 	std::vector<std::string> temp;
 	std::stringstream ss;
 	ss << this->port;
+	std::cout << "CGI BODY INSIDE: " << std::endl;
+	std::cout << _body << std::endl;
+
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
 	temp.push_back("SERVER_NAME=" + this->ip);
 	temp.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -133,23 +136,29 @@ void Cgi::create_env(void)
 	temp.push_back("PATH_INFO=" + this->file);
 	temp.push_back("PATH_TRANSLATED=" + this->file);
 	temp.push_back("SCRIPT_FILENAME=" + this->file);
-    temp.push_back("REQUEST_URI=" + this->file);
-    if (this->head.find("Query-String") != this->head.end())
+	temp.push_back("REQUEST_URI=" + this->file);
+	if (this->head.find("Query-String") != this->head.end())
 		temp.push_back("QUERY_STRING=" + this->head["Query-String"]);
 	else
 		temp.push_back("QUERY_STRING=");
-    temp.push_back("REDIRECT_STATUS=0");
+	temp.push_back("REDIRECT_STATUS=0");
 	temp.push_back("REMOTE_HOST=");
 	temp.push_back("FILE_UPLOADS=On");
-    temp.push_back("CONTENT_TYPE=" + this->head["Content-Type"]);
-	temp.push_back("CONTENT_LENGTH=" + this->head["Content-Length"]);
+	if (this->head.find("Content-Type") != this->head.end())
+		temp.push_back("CONTENT_TYPE=" + this->head["Content-Type"]);
+	else
+		temp.push_back("CONTENT_TYPE=");
+	if (this->head.find("Content-Length") != this->head.end())
+		temp.push_back("CONTENT_LENGTH=" + this->head["Content-Length"]);
+	else
+		temp.push_back("CONTENT_LENGTH=");
 
 	for (std::map<std::string, std::string>::iterator it = head.begin(); it != head.end() ; ++it) {
 		if (!it->second.empty())
 		{
 			std::string header = "HTTP_" + toUpper(it->first);
 			std::replace(header.begin(), header.end(), '-', '_');
-			temp.push_back(header + "= " + it->second);
+			temp.push_back(header + "=" + it->second);
 		}
 	}
 	this->env = vecToArr(temp);
@@ -184,7 +193,6 @@ std::string  Cgi::launch_binary()
         close(pipe_out[1]);
 
 		if (execve(argv[0], argv, this->env) == -1)
-		//if (execve("/Users/tpaquier/sgoinfre/php-cgi", argv, this->env) == -1)
 		{
 			perror("DEBUG ");
 			exit(EXIT_FAILURE);

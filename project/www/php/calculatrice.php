@@ -47,7 +47,6 @@
 
         	<?php
         	if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
                     	if(isset($_POST['num1']) && isset($_POST['num2']) && isset($_POST['operation'])){
                     		$num1 = $_POST['num1'];
                     		$num2 = $_POST['num2'];
