@@ -87,7 +87,7 @@ class HttpParser
 		void buildResponse(void);
         void checkMethod(std::vector<std::string>, std::string);
 
-		void processCgi(std::vector<std::string>& lines, std::string& fileExt, struct tm& timeStruct, char* buf, std::ostringstream& ossHeader, std::ostringstream& ossBody, int& contentLength);
+		bool processCgi(std::vector<std::string>& lines, std::string& fileExt, struct tm& timeStruct, char* buf, std::ostringstream& ossHeader, std::ostringstream& ossBody, int& contentLength);
 		void processGetMethod(std::vector<std::string>& lines);
 		void processPostMethod(void);
 		void processDeleteMethod(void);

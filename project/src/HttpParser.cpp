@@ -368,10 +368,10 @@ void HttpParser::buildResponse(void) {
 	char buf[80];
 
 	checkMethod(getLocation().getAllowedMet(), getMethod());
-
-	processCgi(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength);
-
-	if (getMethod() == "GET" && !_ifcgi) {
+	
+	if (processCgi(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength) == true)
+		;
+	else if (getMethod() == "GET" && !_ifcgi) {
 		processGetMethod(lines);
 	} else if (getMethod() == "POST" && !_ifcgi) {
 		processPostMethod();
@@ -401,7 +401,7 @@ void HttpParser::buildResponse(void) {
 	}
 }
 
-void HttpParser::processCgi(std::vector <std::string> &lines, std::string &fileExt, struct tm &timeStruct, char *buf,
+bool HttpParser::processCgi(std::vector <std::string> &lines, std::string &fileExt, struct tm &timeStruct, char *buf,
                             std::ostringstream &ossHeader, std::ostringstream &ossBody, int &contentLength) {
 	Cgi cgi(this->_body, concatPath(_loc.getRoot(), _file), this->_headers, this->_loc, this->_serv.getName(),
 	        this->getMethod(), this->getHttpVersion(), this->_serv.getIp(), this->_serv.getPort());
@@ -421,10 +421,13 @@ void HttpParser::processCgi(std::vector <std::string> &lines, std::string &fileE
 			lines.push_back(_body);
 			std::cout << "CGI BODY AFTER: " << std::endl;
 			std::cout << _body << std::endl;
+			return (true);
 		}
 	} else if (!_file.empty() && _file.substr(n) == ".php" && this->_ifcgi) {
 		processNonCgiRequest(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength);
+		return (false);
 	}
+	return (false);
 }
 
 void HttpParser::processGetMethod(std::vector <std::string> &lines) {

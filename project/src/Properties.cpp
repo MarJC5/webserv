@@ -116,6 +116,7 @@ bool Properties::parseMaxBodySize(std::string line) {
         _max_body_size = stoi(getVal(line, "client_max_body_size", pos));
         return (true);
     }
+    _max_body_size = 100000;
     return (false);
 }
 
