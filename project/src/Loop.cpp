@@ -141,13 +141,81 @@ void Loop::socketaccept(void)
 		throw std::exception(); // temporaire
 }
 
+int how_much_number(std::string temp)
+{
+	int ret = 0;
+	int i = temp.find("Content-Length:") + 16;
+	while (temp.at(i))
+	{
+		if (isdigit(temp.at(i)))
+			ret++;
+		else
+			return (ret);
+		i++;
+	}
+	return (ret);
+}
+
 void Loop::readrequete(void)
 {
-  std::memset(this->r_buffer, 0, sizeof(serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1));
-	this->r_octet = recv(this->tab_fd, this->r_buffer, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
-	if (this->r_octet == -1)
-		throw std::exception(); // temporaire
-	this->r_buffer[this->r_octet] = '\0';
+	std::string base;
+	char *tmp;
+	bool bolle = false;
+	int count = 0;
+
+	while (base.rfind("\r\n") == std::string::npos)
+	{
+		if (bolle == false)
+		{
+			tmp = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
+			std::memset(tmp, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1);
+			bolle = true;
+		}
+		else
+		{
+			tmp = new char[this->r_octet];
+			std::memset(tmp, 0, this->r_octet);
+		}
+		this->r_octet = recv(this->tab_fd, tmp, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
+		std::string tp(tmp, this->r_octet);
+		base.append(tp);
+		tp.erase();
+		delete[] tmp;
+		if (this->r_octet == -1)
+			throw std::exception(); // temporaire
+	}
+	count = base.size();
+	if (base.find("POST") != std::string::npos)
+	{
+		bolle = false;
+		std::string size;
+		size.assign(base, base.find("Content-Length:") + 16, how_much_number(base));
+		int total = std::stoi(size);
+		std::cout << "AVANT : SIZE : " << count << "    |    " << total << " : total" << std::endl;
+		while (count <= total)
+		{
+			if (bolle == false)
+			{
+				tmp = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
+				std::memset(tmp, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1);
+				bolle = true;
+			}
+			else
+			{
+				tmp = new char[this->r_octet];
+				std::memset(tmp, 0, this->r_octet);
+			}
+			this->r_octet = recv(this->tab_fd, tmp, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
+			std::string tp(tmp, this->r_octet);
+			count += tp.size();
+			base.append(tp);
+			tp.erase();
+			delete[] tmp;
+		}
+		std::cout << " APRES : SIZE : " << count << "    |    " << total << " : total" << std::endl;
+	}
+	std::cout << "CE QUI LIS : " << base << std::endl;
+	strcpy(this->r_buffer, base.c_str());
 }
 
 void Loop::sendrequete(void)
@@ -234,7 +302,6 @@ void	Loop::loop(void)
 	while (i < this->tab_socket.size())
 	{
 		it = getlist(i);
-		//std::cout << "fd_socket : " << i << std::endl;
 		if (it > this->max_fd)
 			this->max_fd = it;
 		FD_SET(it, &this->setfd);

@@ -124,8 +124,6 @@ void Cgi::create_env(void)
 	std::vector<std::string> temp;
 	std::stringstream ss;
 	ss << this->port;
-	std::cout << "CGI BODY INSIDE: " << std::endl;
-	std::cout << _body << std::endl;
 
 	temp.push_back("SERVER_SOFTWARE=webserv/1.1");
 	temp.push_back("SERVER_NAME=" + this->ip);

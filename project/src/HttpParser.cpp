@@ -414,13 +414,9 @@ bool HttpParser::processCgi(std::vector <std::string> &lines, std::string &fileE
 			if (this->getMethod() == "POST")
 				this->_ifcgi = true;
 			_status << "200";
-			std::cout << "CGI BODY BEFORE: " << std::endl;
-			std::cout << _body << std::endl;
 			_body = cgi.launch_binary();
 			_body = _body.substr(_body.find("\r\n\r\n") + 4);
 			lines.push_back(_body);
-			std::cout << "CGI BODY AFTER: " << std::endl;
-			std::cout << _body << std::endl;
 			return (true);
 		}
 	} else if (!_file.empty() && _file.substr(n) == ".php" && this->_ifcgi) {
@@ -522,9 +518,6 @@ void HttpParser::processPostMethod(void) {
 	int contentLength;
 	std::istringstream contentLengthStream(contentLengthIter->second);
 	contentLengthStream >> contentLength;
-
-	std::cout << "POST BODY: " << std::endl;
-	std::cout << _body << std::endl;
 
 	if (contentLength > _serv.getMaxBody()) {
 		_status << "413"; // Payload Too Large

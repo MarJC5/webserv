@@ -33,6 +33,7 @@
     <div class="container">
         <p>This page is a GET request with cgi.</p>
         <p>Here is a post request with cgi : <a href="calculatrice.php">calculatrice.php</a></p>
+        <p>Here is php info : <a href="info.php">info.php</a></p>
     </div>
 </main>
 
