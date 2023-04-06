@@ -184,15 +184,17 @@ void Loop::readrequete(void)
 		if (this->r_octet == -1)
 			throw std::exception(); // temporaire
 	}
-	count = base.size();
 	if (base.find("POST") != std::string::npos)
 	{
 		bolle = false;
 		std::string size;
+
+		size_t temp = base.find("\n", base.rfind("Accept-Language:")) + 3;
+		count = base.size() - temp;
 		size.assign(base, base.find("Content-Length:") + 16, how_much_number(base));
 		int total = std::stoi(size);
-		std::cout << "AVANT : SIZE : " << count << "    |    " << total << " : total" << std::endl;
-		while (count <= total)
+		//std::cout << "AVANT : SIZE : " << count << "    |    " << total << " : total      |      temp: " << temp << std::endl;
+		while (count < total)
 		{
 			if (bolle == false)
 			{
@@ -214,7 +216,8 @@ void Loop::readrequete(void)
 		}
 		std::cout << " APRES : SIZE : " << count << "    |    " << total << " : total" << std::endl;
 	}
-	std::cout << "CE QUI LIS : " << base << std::endl;
+	//std::cout << "CE QUI LIS : " << base << std::endl;
+	this->string_buffer = base;
 	strcpy(this->r_buffer, base.c_str());
 }
 
@@ -336,7 +339,7 @@ void	Loop::loop(void)
 				}
 				// print request
 				request.setServ(*serv[fd_accept - this->tab_socket.front()]);
-                request.parse(r_buffer);
+                request.parse(this->string_buffer);
                 std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
 				delete[] this->r_buffer;

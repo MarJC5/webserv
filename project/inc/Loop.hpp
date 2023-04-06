@@ -80,6 +80,7 @@ class Loop
 		int max_fd;
 		int temp;
 
+		std::string string_buffer;
 		int r_octet; // le nombre d'octet read
 		char *r_buffer; // le buffer pour le recv (read)
 		int w_octet; // le nombre d'octer write

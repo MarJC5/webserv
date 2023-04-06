@@ -219,12 +219,11 @@ std::vector <std::string> HttpParser::split(std::string str, std::string delimit
 	return (result);
 }
 
-void HttpParser::parse(char *buffer) {
-	std::string str(buffer);
+void HttpParser::parse(std::string string_buffer) {
 	std::vector <std::string> lines;
 	std::string line;
 
-	std::istringstream iss(str);
+	std::istringstream iss(string_buffer);
 	while (std::getline(iss, line)) {
 		lines.push_back(line);
 		if (line.empty() || line == "\r") {

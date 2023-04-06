@@ -41,7 +41,7 @@ class HttpParser
 		HttpParser &operator=(HttpParser const &rhs);
 
 		// Parse the HTTP message in the buffer.
-		void parse(char *buffer);
+		void parse(std::string string_buffer);
 
 		// Request
 		std::string getMethod(void) const;
