@@ -193,7 +193,6 @@ void Loop::readrequete(void)
 		count = base.size() - temp;
 		size.assign(base, base.find("Content-Length:") + 16, how_much_number(base));
 		int total = std::stoi(size);
-		//std::cout << "AVANT : SIZE : " << count << "    |    " << total << " : total      |      temp: " << temp << std::endl;
 		while (count < total)
 		{
 			if (bolle == false)
@@ -216,9 +215,7 @@ void Loop::readrequete(void)
 		}
 		std::cout << " APRES : SIZE : " << count << "    |    " << total << " : total" << std::endl;
 	}
-	//std::cout << "CE QUI LIS : " << base << std::endl;
 	this->string_buffer = base;
-	strcpy(this->r_buffer, base.c_str());
 }
 
 void Loop::sendrequete(void)
@@ -327,8 +324,6 @@ void	Loop::loop(void)
 			this->fd_accept = getlist(i);
 			if (FD_ISSET(this->fd_accept, &this->temp_fd))
 			{
-				this->r_buffer = new char[serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 2];
-				std::memset(r_buffer, 0, serv[fd_accept - this->tab_socket.front()]->getMaxBody());
 				socketaccept();
 				readrequete();
 				if (r_octet > serv[fd_accept - this->tab_socket.front()]->getMaxBody()){
@@ -342,7 +337,6 @@ void	Loop::loop(void)
                 request.parse(this->string_buffer);
                 std::cout << request;
 				FD_SET(this->tab_fd, &this->temp_fd);
-				delete[] this->r_buffer;
 				break ;
 			}
 			i++;

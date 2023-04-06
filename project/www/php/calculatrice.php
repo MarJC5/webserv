@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/src/stylesheets/main.css">
 </head>
 
-<body class="post-page">
+<body class="cgi-page">
 
 <header>
     <div class="container grid">

@@ -367,7 +367,7 @@ void HttpParser::buildResponse(void) {
 	char buf[80];
 
 	checkMethod(getLocation().getAllowedMet(), getMethod());
-	
+
 	if (processCgi(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength) == true)
 		;
 	else if (getMethod() == "GET" && !_ifcgi) {
@@ -391,7 +391,7 @@ void HttpParser::buildResponse(void) {
 	if (!_ifcgi && getMethod() != "POST") {
 		processNonCgiRequest(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength);
 	}
-
+	
 	if (getMethod() == "POST") {
 		setMethod("GET");
 		_headers["Content-Disposition"] = "inline";

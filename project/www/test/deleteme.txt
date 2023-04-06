@@ -1,1 +1,0 @@
-Try to delete me with curl: curl -X DELETE http://127.0.0.1:4242/test/deleteme.txt
