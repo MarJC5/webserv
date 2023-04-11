@@ -203,8 +203,8 @@ void Loop::readrequete(void)
 			}
 			else
 			{
-				tmp = new char[this->r_octet];
-				std::memset(tmp, 0, this->r_octet);
+				tmp = new char[total - this->r_octet];
+				std::memset(tmp, 0, total - this->r_octet);
 			}
 			this->r_octet = recv(this->tab_fd, tmp, serv[fd_accept - this->tab_socket.front()]->getMaxBody() + 1, 0);
 			std::string tp(tmp, this->r_octet);
@@ -213,7 +213,6 @@ void Loop::readrequete(void)
 			tp.erase();
 			delete[] tmp;
 		}
-		std::cout << " APRES : SIZE : " << count << "    |    " << total << " : total" << std::endl;
 	}
 	this->string_buffer = base;
 }

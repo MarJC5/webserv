@@ -171,8 +171,11 @@ std::string  Cgi::launch_binary()
 	int pipe_in[2];
     int pipe_out[2];
 	pipe(pipe_in);
-    pipe(pipe_out);
-	write(pipe_in[1], this->_body.c_str(), this->_body.length());
+	pipe(pipe_out);
+	std::cout << "Just avant le write : " << this->_body.size() << std::endl;
+	//write(1, this->_body.c_str(), this->_body.size());
+	int test = write(pipe_in[1], this->_body.c_str(), this->_body.size());
+	std::cout << " ce que lis le write : " << test << std::endl;
 	close(pipe_in[1]);
 
 	pid_t pid = 0;
