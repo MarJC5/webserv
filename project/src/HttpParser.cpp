@@ -241,8 +241,8 @@ void HttpParser::parse(std::string string_buffer) {
 		if (it == lines.begin()) {
 			std::vector <std::string> firstLine = split(*it, " ");
 			_method = firstLine[0];
-			_uri = firstLine[1].substr(0, firstLine[1].rfind('/') + 1);
-			_file = firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos);
+			_uri = this->urlDecode(firstLine[1].substr(0, firstLine[1].rfind('/') + 1));
+			_file = this->urlDecode(firstLine[1].substr(firstLine[1].rfind('/') + 1, std::string::npos));
 			_loc = check_location(_serv.getLocations(), _uri, _file);
 			_httpVersion = firstLine[2];
 			_isRequest = true;
