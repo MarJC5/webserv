@@ -222,6 +222,7 @@ std::vector <std::string> HttpParser::split(std::string str, std::string delimit
 void HttpParser::parse(std::string string_buffer) {
 	std::vector <std::string> lines;
 	std::string line;
+	_status << "100";
 
 	std::istringstream iss(string_buffer);
 	while (std::getline(iss, line)) {
@@ -267,6 +268,11 @@ void HttpParser::parse(std::string string_buffer) {
 		} else {
 			throw HttpException("403");
 		}
+	}
+
+	if ((int)_body.size() > this->_serv.getMaxBody())
+	{
+		this->_status << "413";
 	}
 }
 
@@ -367,7 +373,12 @@ void HttpParser::buildResponse(void) {
 	char buf[80];
 
 	checkMethod(getLocation().getAllowedMet(), getMethod());
-	if (processCgi(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength) == true)
+	this->_statusCode = _status.getStatusCode();
+	this->_statusMessage = _status.getStatusMessage(_status.getStatusCode());
+	if (std::atoi(_statusCode.c_str()) >= 400) {
+		processErrorPage(lines);
+	}
+	else if (processCgi(lines, fileExt, timeStruct, buf, ossHeader, ossBody, contentLength) == true)
 		;
 	else if (getMethod() == "GET" && !_ifcgi) {
 		processGetMethod(lines);

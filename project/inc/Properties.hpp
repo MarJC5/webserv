@@ -22,7 +22,7 @@ class Properties
         std::vector<std::string> const &getIndex(void) const;
         std::string const &getCgiBin(void) const;
         std::string const &getUploadDir(void) const;
-        int const &getMaxBody(void) const;
+        int getMaxBody(void) const;
         bool const &getDirListing(void) const;
         std::vector<std::string> const &getCgiExtensions(void) const;
         std::vector<std::string> const &getAllowedMet(void) const;

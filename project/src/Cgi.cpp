@@ -173,7 +173,10 @@ std::string  Cgi::launch_binary()
 	pipe(pipe_in);
 	pipe(pipe_out);
 	
+	
+	
 	fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+	
 	size_t total_bytes = 0;
 	while (total_bytes < this->_body.size())
 	{

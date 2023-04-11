@@ -4,7 +4,7 @@
 #include "../inc/Properties.hpp"
 #include <iostream>
 
-Properties::Properties(void): _root(""), _index(), _max_body_size(1048576), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
+Properties::Properties(void): _root(""), _index(), _max_body_size(65336), _cgi_bin(""), _directory_listing(false), _upload_dir("") {}
 
 Properties::Properties(const Properties &copy)
 {
@@ -49,7 +49,7 @@ std::string const &Properties::getUploadDir(void) const
     return (_upload_dir);
 }
 
-int const &Properties::getMaxBody(void) const
+int Properties::getMaxBody(void) const
 {
     return (_max_body_size);
 }
@@ -116,7 +116,6 @@ bool Properties::parseMaxBodySize(std::string line) {
         _max_body_size = stoi(getVal(line, "client_max_body_size", pos));
         return (true);
     }
-    _max_body_size = 100000;
     return (false);
 }
 
