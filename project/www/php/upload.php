@@ -66,13 +66,13 @@ if ($_FILES["fileToUpload"]["error"] == UPLOAD_ERR_OK) {
     $uploadOk = 0;
   }
 } else {
-  echo "Sorry, there was an error uploading your file.";
+  echo "Sorry, there was an error uploading your file. (maybe it's bigger than 65kb)";
   echo "<br><br>";
   $uploadOk = 0;
 }
 
 // Check file size
-if ($_FILES["fileToUpload"]["size"] > 5000000) {
+if ($_FILES["fileToUpload"]["size"] >= 65336) {
   echo "Sorry, your file is too large.";
   echo "<br><br>";
   $uploadOk = 0;
