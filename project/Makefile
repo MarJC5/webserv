@@ -13,7 +13,8 @@ NAME		= webserv
 # FOLDERS & FILES
 SRCS_DIR	= ./src/
 SRCS_FILES	= main.cpp
-SRCS_FILES	+=
+
+SRCS_FILES	+= ConfFile.cpp Config.cpp Server.cpp Properties.cpp Location.cpp parse.cpp Loop.cpp HttpException.cpp HttpParser.cpp checkLocation.cpp dirListing.cpp Cgi.cpp
 SRCS		:= ${patsubst %, ${SRCS_DIR}%, ${SRCS_FILES}}
 
 O_DIR		= ./objs/
@@ -26,21 +27,21 @@ DEBUGS		:= ${patsubst %, ${D_DIR}%, ${OBJS_FILES}}
 
 # FLAGS
 CC			= g++
-CFLAGS		= -Wall -Wextra -Werror
+CFLAGS		= -Wall -Wextra 
 # Add this for debug
-CFLAGS		+= -g3
+#CFLAGS		+= -g3
 
-CPP_FLAGS 	= -std=c++98
+CPP_FLAGS 	= -std=c++98 -pedantic
 
 # COMMANDS
-MKDIR		= mkdir
+MKDIR		= mkdir -p
 RM			= rm -f
 
 all: ${NAME}
 
 # Compile normal executable
 ${NAME}: ${O_DIR} ${OBJS}
-	@${CC} ${CFLAGS} ${CPP_FLAGS} -o ${NAME} ${OBJS}
+	@${CC} ${CFLAGS} -I inc/ ${CPP_FLAGS} -o ${NAME} ${OBJS}
 	@echo "[$(ORANGE)$(NAME)$(RESET)] Creation *.o files & compilation : $(GREEN)OK$(RESET)"
 	@echo "[\033[1;32msuccess$(RESET)]: $(NAME) is ready"
 
@@ -51,7 +52,7 @@ ${O_DIR}:
 # Compile normals objects
 ${O_DIR}%.o: ${SRCS_DIR}%.cpp
 	@echo "[$(CYAN)Compiling$(RESET)]: $<$(UP)$(CUT)"
-	@${CC} ${CFLAGS} ${HEADS} -o $@ -c $<
+	@${CC} ${CFLAGS} -I inc/ ${HEADS} -o $@ -c $<
 
 #Compile a debug executable with -g and fsanitize
 debug: ${D_DIR} ${DEBUGS}

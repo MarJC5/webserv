@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+    --black: #000000;
+    --white: #ffffff;
+    --success: #1dd1a1;
+    --error: #ee5253;
+    --warning: #ff9f43;
+    --info: #54a0ff;
+    --primary: #2e86de;
+    --cgi: #99c;
+}
+
+/*
+    * Body
+ */
+
+body {
+    margin: 0 auto;
+    font-size: 20px;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Sofia Sans', sans-serif;
+}
+
+main {
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+pre,
+code {
+    background-color: #eee;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: 'Sofia Sans', sans-serif;
+    border-radius: 5px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.975rem;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.wrapper {
+    max-width: 100%;
+    margin: 1rem;
+}
+
+.dirlist {
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    padding: 1rem;
+}
+
+.dirlist a {
+    font-weight: normal;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem;
+}
+
+/*
+    * Footer
+ */
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+footer .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.authors {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.authors li {
+    margin: 0 0.5rem;
+}
+
+/*
+    * Utilities
+ */
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.ul-inline {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+}
+
+.ul-inline li {
+    margin: 0 0.5rem;
+}
+
+/*
+    * Colors
+ */
+
+.blue {
+    color: var(--info);
+}
+
+.red {
+    color: var(--error);
+}
+
+.php {
+    color: var(--cgi);
+}
+
+.green {
+    color: var(--success);
+}
+
+.orange {
+    color: var(--warning);
+}
+
+/*
+    * Forms
+ */
+
+form {
+    max-width: 350px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 5px;
+}
+
+label {
+    margin-bottom: 0.5rem;
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+/*
+    * typo
+ */
+
+a {
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--black);
+}
+
+/*
+    * Buttons
+ */
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.btn--success {
+    background-color: var(--success);
+}
+
+/*
+    * Pages
+ */
+
+.text-info {
+    max-width: 350px;
+}
+
+.error-page a {
+    color: var(--warning);
+}
+
+.get-page a {
+    color: var(--info);
+}
+
+.post-page a {
+    color: var(--success);
+}
+
+.delete-page a {
+    color: var(--error);
+}
+
+.cgi-page a {
+    color: var(--cgi);
+}
+
+.cgi-page .btn--success {
+    background-color: var(--cgi);
+}
